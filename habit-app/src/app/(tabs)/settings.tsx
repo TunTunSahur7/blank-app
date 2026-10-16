@@ -58,7 +58,7 @@ export default function SettingsScreen() {
   const exportBackup = async () => {
     setBusy(true);
     try {
-      const file = new File(Paths.cache, `Daymark-backup-${today}.json`);
+      const file = new File(Paths.cache, `Besa-backup-${today}.json`);
       if (file.exists) file.delete();
       file.create();
       await file.write(JSON.stringify(buildBackup(habits, allCheckins(), shieldList), null, 2));

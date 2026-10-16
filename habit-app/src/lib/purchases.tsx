@@ -7,7 +7,7 @@ import { strings } from './i18n';
 import { useHabits } from './store';
 
 /**
- * Daymark Pro, sold through RevenueCat.
+ * Besa Pro, sold through RevenueCat.
  *
  * Setup (once): create products in App Store Connect, add them to a RevenueCat offering
  * with the $rc_annual, $rc_monthly and $rc_lifetime packages, attach them to an

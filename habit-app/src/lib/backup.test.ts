@@ -27,8 +27,8 @@ test('drops check-ins for unknown habits or bad dates', () => {
 });
 
 test('rejects non-backups and newer versions', () => {
-  assert.throws(() => parseBackup('not json'), /isn't a Daymark backup/);
-  assert.throws(() => parseBackup('{"habits":[]}'), /isn't a Daymark backup/);
+  assert.throws(() => parseBackup('not json'), /isn't a Besa backup/);
+  assert.throws(() => parseBackup('{"habits":[]}'), /isn't a Besa backup/);
   const newer = { ...buildBackup([], [], []), version: 99 };
   assert.throws(() => parseBackup(JSON.stringify(newer)), /newer version/);
 });

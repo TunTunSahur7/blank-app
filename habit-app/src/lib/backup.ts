@@ -1,7 +1,7 @@
 import { ALL_DAYS, isValidKey } from './dates';
 import type { Checkin, Habit, Shield } from './db';
 
-export const BACKUP_FORMAT = 'daymark-backup';
+export const BACKUP_FORMAT = 'besa-backup';
 export const BACKUP_VERSION = 1;
 
 export type Backup = {
@@ -23,14 +23,14 @@ export function parseBackup(text: string): Backup {
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("This file isn't a Daymark backup.");
+    throw new Error("This file isn't a Besa backup.");
   }
   const b = data as Partial<Backup>;
   if (!b || b.format !== BACKUP_FORMAT || !Array.isArray(b.habits) || !Array.isArray(b.checkins)) {
-    throw new Error("This file isn't a Daymark backup.");
+    throw new Error("This file isn't a Besa backup.");
   }
   if (typeof b.version !== 'number' || b.version > BACKUP_VERSION) {
-    throw new Error('This backup was made by a newer version of Daymark. Update the app and try again.');
+    throw new Error('This backup was made by a newer version of Besa. Update the app and try again.');
   }
 
   const habits: Habit[] = b.habits.map((h, i) => {

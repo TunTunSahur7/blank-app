@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { DayKey } from './dates';
 
-export const DATABASE_NAME = 'daymark.db';
+export const DATABASE_NAME = 'besa.db';
 
 export type Habit = {
   id: number;

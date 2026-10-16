@@ -7,7 +7,7 @@
 export type Lang = 'en' | 'sq';
 
 /** One place to rename the app. */
-export const APP_NAME = 'Daymark';
+export const APP_NAME = 'Besa';
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
@@ -50,6 +50,7 @@ const en = {
 
   // Welcome
   welcomeTo: 'Welcome to',
+  tagline: 'Keep your word to yourself.',
   featureFreeTitle: 'Unlimited habits, free',
   featureFreeBody: 'Track everything that matters to you. No limit, no paywall.',
   featureRestTitle: 'Streaks that respect rest',
@@ -135,7 +136,7 @@ const en = {
   deleteConfirmBody: 'This removes the habit and its whole history. This can’t be undone.',
   delete: 'Delete',
   notificationsOff: 'Notifications are off',
-  notificationsOffBody: 'Turn on notifications for Daymark in Settings to get reminders.',
+  notificationsOffBody: 'Turn on notifications for Besa in Settings to get reminders.',
   couldntSaveHabit: 'Something went wrong saving this habit. Please try again.',
   libraryRowTitle: 'Browse the Habit Library',
   libraryRowBody: '50+ proven habits and one-tap packs',
@@ -150,7 +151,7 @@ const en = {
   lastWeeks: (n: number) => `Last ${n} weeks`,
   historyHint: 'Missed a check-in? Tap any past day to fill it in.',
   fullHistory: 'Full history',
-  unlockWithPro: 'Unlock with Daymark Pro.',
+  unlockWithPro: 'Unlock with Besa Pro.',
 
   // Progress
   progressTitle: 'Progress',
@@ -167,14 +168,14 @@ const en = {
 
   // Settings
   settingsTitle: 'Settings',
-  proTitle: 'Daymark Pro',
-  tryPro: 'Try Daymark Pro',
+  proTitle: 'Besa Pro',
+  tryPro: 'Try Besa Pro',
   proThanks: (left: number, total: number) => `Thank you for your support. ${left} of ${total} Streak Shields left this month.`,
   proPitch: 'Streak Shields, interactive widgets, Insights and your full history. Free for 7 days.',
   streakGuard: 'Streak Guard',
   streakGuardFooter: 'One evening nudge, only when a habit is still open. Finish your day and it stays quiet.',
   eveningNudge: 'Evening nudge',
-  guardNeedsNotifications: 'Turn on notifications for Daymark in Settings to use Streak Guard.',
+  guardNeedsNotifications: 'Turn on notifications for Besa in Settings to use Streak Guard.',
   yourData: 'Your data',
   yourDataFooter: 'Your habits live only on this iPhone and in your iCloud or computer backups. No account, no tracking.',
   exportBackup: 'Export Backup',
@@ -191,16 +192,16 @@ const en = {
   nothingChanged: 'Nothing was changed. Please try again.',
   support: 'Support',
   addWidget: 'Add a Widget',
-  addWidgetTitle: 'Add a Daymark widget',
-  addWidgetBody: 'Touch and hold an empty spot on your Home Screen, tap Edit › Add Widget, then search for Daymark. For your Lock Screen, touch and hold it and tap Customize.',
-  rateApp: 'Rate Daymark',
-  shareApp: 'Share Daymark',
+  addWidgetTitle: 'Add a Besa widget',
+  addWidgetBody: 'Touch and hold an empty spot on your Home Screen, tap Edit › Add Widget, then search for Besa. For your Lock Screen, touch and hold it and tap Customize.',
+  rateApp: 'Rate Besa',
+  shareApp: 'Share Besa',
   shareAppText: `I build my habits with ${APP_NAME}.`,
   restorePurchases: 'Restore Purchases',
-  proRestored: 'Daymark Pro restored',
+  proRestored: 'Besa Pro restored',
   welcomeBack: 'Welcome back.',
   nothingToRestore: 'Nothing to restore',
-  noPurchaseFound: 'No Daymark Pro purchase was found for this Apple ID.',
+  noPurchaseFound: 'No Besa Pro purchase was found for this Apple ID.',
   couldntRestorePurchases: 'Please check your connection and try again.',
   manageSubscription: 'Manage Subscription',
   notificationSettings: 'Notification Settings',
@@ -274,7 +275,7 @@ const en = {
   nudgeClose: 'Close your day',
   nudgeWaiting: (n: number) => `${n === 1 ? 'One habit is' : `${n} habits are`} waiting. Keep your streaks going.`,
   nudgeLeft: (n: number, names: string) => `${n === 1 ? '1 habit' : `${n} habits`} left today: ${names}`,
-  trialEndingTitle: 'Your Daymark Pro trial ends in 2 days',
+  trialEndingTitle: 'Your Besa Pro trial ends in 2 days',
   trialEndingBody: 'Keep it and nothing changes. To cancel, go to Settings › Apple ID › Subscriptions.',
 
   // Widget
@@ -324,7 +325,8 @@ const sq: Strings = {
   tabProgress: 'Progresi',
   tabSettings: 'Cilësimet',
 
-  welcomeTo: 'Mirë se vini në',
+  welcomeTo: 'Mirë se vini te',
+  tagline: 'Mbaje fjalën që i jep vetes.',
   featureFreeTitle: 'Shprehi pa limit, falas',
   featureFreeBody: 'Ndiqni gjithçka që ka rëndësi për ju. Pa kufi, pa pagesë.',
   featureRestTitle: 'Seri që respektojnë pushimin',
@@ -404,7 +406,7 @@ const sq: Strings = {
   deleteConfirmBody: 'Kjo fshin shprehinë dhe gjithë historikun e saj. Nuk mund të kthehet.',
   delete: 'Fshi',
   notificationsOff: 'Njoftimet janë të fikura',
-  notificationsOffBody: 'Aktivizoni njoftimet për Daymark te Cilësimet për të marrë kujtesa.',
+  notificationsOffBody: 'Aktivizoni njoftimet për Besa te Cilësimet për të marrë kujtesa.',
   couldntSaveHabit: 'Diçka shkoi keq gjatë ruajtjes. Ju lutem provoni përsëri.',
   libraryRowTitle: 'Shfletoni Bibliotekën',
   libraryRowBody: 'Mbi 50 shprehi të provuara dhe paketa me një prekje',
@@ -418,7 +420,7 @@ const sq: Strings = {
   lastWeeks: (n) => `${n} javët e fundit`,
   historyHint: 'Harruat ta shënoni? Prekni çdo ditë të kaluar për ta plotësuar.',
   fullHistory: 'Historiku i plotë',
-  unlockWithPro: 'Zhbllokoje me Daymark Pro.',
+  unlockWithPro: 'Zhbllokoje me Besa Pro.',
 
   progressTitle: 'Progresi',
   thisWeek: 'Këtë javë',
@@ -433,14 +435,14 @@ const sq: Strings = {
   unlockInsights: 'Zhblloko Analizat',
 
   settingsTitle: 'Cilësimet',
-  proTitle: 'Daymark Pro',
-  tryPro: 'Provoni Daymark Pro',
+  proTitle: 'Besa Pro',
+  tryPro: 'Provoni Besa Pro',
   proThanks: (left, total) => `Faleminderit për mbështetjen. Ju kanë mbetur ${left} nga ${total} Mburoja këtë muaj.`,
   proPitch: 'Mburoja serie, widget-e interaktive, Analiza dhe historiku i plotë. 7 ditë falas.',
   streakGuard: 'Roja e serisë',
   streakGuardFooter: 'Një kujtesë në mbrëmje, vetëm kur një shprehi ka mbetur pa u kryer. Mbylleni ditën dhe ajo hesht.',
   eveningNudge: 'Kujtesa e mbrëmjes',
-  guardNeedsNotifications: 'Aktivizoni njoftimet për Daymark te Cilësimet për të përdorur Rojën e serisë.',
+  guardNeedsNotifications: 'Aktivizoni njoftimet për Besa te Cilësimet për të përdorur Rojën e serisë.',
   yourData: 'Të dhënat tuaja',
   yourDataFooter: 'Shprehitë tuaja ruhen vetëm në këtë iPhone dhe në kopjet rezervë të iCloud ose kompjuterit. Pa llogari, pa gjurmim.',
   exportBackup: 'Eksporto kopjen rezervë',
@@ -457,16 +459,16 @@ const sq: Strings = {
   nothingChanged: 'Asgjë nuk ndryshoi. Ju lutem provoni përsëri.',
   support: 'Mbështetja',
   addWidget: 'Shto një widget',
-  addWidgetTitle: 'Shtoni një widget të Daymark',
-  addWidgetBody: 'Mbani shtypur një vend bosh në ekranin kryesor, prekni Edit › Add Widget dhe kërkoni Daymark. Për ekranin e kyçjes, mbajeni shtypur dhe prekni Customize.',
-  rateApp: 'Vlerëso Daymark',
-  shareApp: 'Ndaje Daymark',
+  addWidgetTitle: 'Shtoni një widget të Besa',
+  addWidgetBody: 'Mbani shtypur një vend bosh në ekranin kryesor, prekni Edit › Add Widget dhe kërkoni Besa. Për ekranin e kyçjes, mbajeni shtypur dhe prekni Customize.',
+  rateApp: 'Vlerëso Besa',
+  shareApp: 'Ndaje Besa',
   shareAppText: `Shprehitë e mia i ndërtoj me ${APP_NAME}.`,
   restorePurchases: 'Rikthe blerjet',
-  proRestored: 'Daymark Pro u rikthye',
+  proRestored: 'Besa Pro u rikthye',
   welcomeBack: 'Mirë se u kthyet.',
   nothingToRestore: 'Asgjë për t’u rikthyer',
-  noPurchaseFound: 'Nuk u gjet asnjë blerje e Daymark Pro për këtë Apple ID.',
+  noPurchaseFound: 'Nuk u gjet asnjë blerje e Besa Pro për këtë Apple ID.',
   couldntRestorePurchases: 'Kontrolloni lidhjen dhe provoni përsëri.',
   manageSubscription: 'Menaxho abonimin',
   notificationSettings: 'Cilësimet e njoftimeve',
@@ -537,7 +539,7 @@ const sq: Strings = {
   nudgeClose: 'Mbylleni ditën',
   nudgeWaiting: (n) => `${n === 1 ? 'Një shprehi ju pret' : `${n} shprehi ju presin`}. Vazhdoni seritë.`,
   nudgeLeft: (n, names) => `${n} ${n === 1 ? 'shprehi ka mbetur' : 'shprehi kanë mbetur'} sot: ${names}`,
-  trialEndingTitle: 'Prova e Daymark Pro mbaron pas 2 ditësh',
+  trialEndingTitle: 'Prova e Besa Pro mbaron pas 2 ditësh',
   trialEndingBody: 'Nëse e mbani, asgjë nuk ndryshon. Për ta anuluar: Cilësimet › Apple ID › Abonimet.',
 
   wDoneToday: 'kryer sot',

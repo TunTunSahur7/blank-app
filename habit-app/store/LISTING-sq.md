@@ -14,7 +14,7 @@ Fjalët kyçe nuk i sheh askush, vetëm kërkimi. Prandaj te lokalizimi **Englis
 shprehi,zakone,seri,ujë,lexim,gjumë,duhan,meditim,rutinë,qëllime,motivim,disiplinë,ditor,kujtesë
 ```
 
-Kështu, kur dikush në Shqipëri ose Kosovë kërkon "shprehi" ose "zakone", Daymark del në rezultate. Përdoruesit në Britani nuk shohin asgjë ndryshe.
+Kështu, kur dikush në Shqipëri ose Kosovë kërkon "shprehi" ose "zakone", Besa del në rezultate. Përdoruesit në Britani nuk shohin asgjë ndryshe.
 
 ## Çmimet
 
@@ -22,7 +22,9 @@ Te App Store Connect › Pricing, vendosni çmime më të ulëta për **Shqipër
 
 ## Tekst për rrjetet sociale, faqen e internetit dhe mediat
 
-**Titulli:** Daymark: Shprehitë e tua, çdo ditë
+**Titulli:** Besa: Mbaje fjalën që i jep vetes
+
+**Historia e emrit:** Besa do të thotë ta mbash fjalën. Shprehia është premtim që i jep vetes, dhe Besa të ndihmon ta mbash, ditë pas dite.
 
 **Përshkrimi i shkurtër:**
 > Aplikacioni i parë shqip për shprehi të mira. Shprehi pa limit, falas. Seri që respektojnë ditët e pushimit, widget-e për ekranin kryesor dhe paketa me një prekje si "Shprehitë tona", "Monk Mode" dhe "Gjumë më i mirë". Gjithçka mbetet në iPhone-in tuaj.

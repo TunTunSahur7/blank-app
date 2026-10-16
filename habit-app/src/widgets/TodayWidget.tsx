@@ -79,7 +79,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
   }
 
   if (family === 'accessoryInline') {
-    return <Text>{total ? l.habitsDone.replace('{d}', String(done)).replace('{t}', String(total)) : 'Daymark'}</Text>;
+    return <Text>{total ? l.habitsDone.replace('{d}', String(done)).replace('{t}', String(total)) : 'Besa'}</Text>;
   }
 
   if (family === 'accessoryCircular') {
@@ -93,7 +93,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
   if (family === 'accessoryRectangular') {
     return (
       <VStack alignment="leading" spacing={1}>
-        <Text modifiers={[font({ size: 13, weight: 'semibold' })]}>Daymark</Text>
+        <Text modifiers={[font({ size: 13, weight: 'semibold' })]}>Besa</Text>
         <Text modifiers={[font({ size: 17, weight: 'bold', design: 'rounded' })]}>
           {allDone ? l.allDone : doneOf}
         </Text>
@@ -114,7 +114,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
 
   if (family === 'systemSmall' || total === 0) {
     return (
-      <VStack alignment="leading" spacing={4} modifiers={[containerBackground(bg, 'widget'), widgetURL('daymark://')]}>
+      <VStack alignment="leading" spacing={4} modifiers={[containerBackground(bg, 'widget'), widgetURL('besa://')]}>
         <HStack>
           {ring}
           <Spacer />
@@ -169,7 +169,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
     </VStack>
   );
 
-  const link = props.pro ? 'daymark://' : 'daymark://paywall?from=widget';
+  const link = props.pro ? 'besa://' : 'besa://paywall?from=widget';
 
   if (large) {
     return (
@@ -204,7 +204,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
   );
 };
 
-export default createWidget<TodayWidgetProps>('DaymarkToday', TodayWidget, {
+export default createWidget<TodayWidgetProps>('BesaToday', TodayWidget, {
   day: '',
   weekday: '',
   habits: [],

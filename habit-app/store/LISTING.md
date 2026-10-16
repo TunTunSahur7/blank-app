@@ -1,6 +1,8 @@
-# App Store listing — Daymark
+# App Store listing — Besa
 
-**App name** (30 max): `Daymark: Habit Tracker`
+**App name** (30 max): `Besa: Habit Tracker`
+
+**Tagline (screens, website, ads):** Keep your word to yourself.
 
 **Subtitle** (30 max): `Daily Streaks & Routines`
 
@@ -12,7 +14,9 @@
 
 **Description:**
 
-> Daymark is the calm, beautiful way to build habits that actually stick.
+> Besa is the calm, beautiful way to build habits that actually stick.
+>
+> In Albanian, besa means keeping your word. A habit is a promise you make to yourself. Besa helps you keep it, one day at a time.
 >
 > UNLIMITED HABITS, FREE
 > No "3 habits, then pay." Track everything that matters: water, reading, workouts, meditation, sleep.
@@ -57,9 +61,9 @@
 
 | Reference name | Product ID | Type | Price | Notes |
 |---|---|---|---|---|
-| Daymark Pro Yearly | `daymark_pro_yearly` | Auto-renewable, group "Daymark Pro" | $29.99 | Introductory offer: 1 week free |
-| Daymark Pro Monthly | `daymark_pro_monthly` | Auto-renewable, same group | $4.99 | |
-| Daymark Pro Lifetime | `daymark_pro_lifetime` | Non-consumable | $69.99 | |
+| Besa Pro Yearly | `besa_pro_yearly` | Auto-renewable, group "Besa Pro" | $29.99 | Introductory offer: 1 week free |
+| Besa Pro Monthly | `besa_pro_monthly` | Auto-renewable, same group | $4.99 | |
+| Besa Pro Lifetime | `besa_pro_lifetime` | Non-consumable | $69.99 | |
 
 ## App Privacy answers
 

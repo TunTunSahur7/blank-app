@@ -126,7 +126,7 @@ export function Ring({
   );
 }
 
-/** The Daymark mark: a loop that's almost closed, and today's dot in the gap. */
+/** The Besa mark: a loop that's almost closed, and today's dot in the gap. */
 export function LogoMark({ size = 88, tile = true }: { size?: number; tile?: boolean }) {
   const c = 2 * Math.PI * 26;
   return (

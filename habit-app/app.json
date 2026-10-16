@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Daymark",
-    "slug": "daymark",
-    "scheme": "daymark",
+    "name": "Besa",
+    "slug": "besa",
+    "scheme": "besa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.daymark.habits",
+      "bundleIdentifier": "app.besa.habits",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -20,7 +20,7 @@
       }
     },
     "android": {
-      "package": "app.daymark.habits",
+      "package": "app.besa.habits",
       "adaptiveIcon": {
         "backgroundColor": "#0071E3",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -51,11 +51,11 @@
       [
         "expo-widgets",
         {
-          "bundleIdentifier": "app.daymark.habits.widgets",
-          "groupIdentifier": "group.app.daymark.habits",
+          "bundleIdentifier": "app.besa.habits.widgets",
+          "groupIdentifier": "group.app.besa.habits",
           "widgets": [
             {
-              "name": "DaymarkToday",
+              "name": "BesaToday",
               "displayName": "Today",
               "description": "See today’s habits and check them off.",
               "ios": {

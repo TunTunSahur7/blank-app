@@ -1,10 +1,10 @@
-# Daymark launch and growth plan
+# Besa launch and growth plan
 
 No one can guarantee a top-chart spot. What moves rankings is **download velocity in a short window**, **ratings**, and **retention**. This plan stacks all three.
 
 ## 1. Positioning (one sentence everywhere)
 
-**"The habit tracker that forgives you."** Unlimited habits free, rest days that don't break streaks, and a Streak Shield when life happens. Every competitor's 1-star reviews are about paywalled habit limits, lost streaks and surprise charges. Daymark is the answer to each of them, so say it.
+**"Besa: keep your word to yourself."** The name carries a story the press already knows: *besa* is the Albanian code of honor, keeping your word, famous worldwide for the Albanians who sheltered Jews in World War II. A habit is a promise to yourself; Besa helps you keep it. In product terms it is still **"the habit tracker that forgives you."** Unlimited habits free, rest days that don't break streaks, and a Streak Shield when life happens. Every competitor's 1-star reviews are about paywalled habit limits, lost streaks and surprise charges. Besa is the answer to each of them, so say it.
 
 ## 2. Money model (why it's built this way)
 
@@ -33,7 +33,7 @@ No one can guarantee a top-chart spot. What moves rankings is **download velocit
   - "Every habit app limits you to 3 habits. Mine doesn't."
   - Screen recording of the 7-day celebration, with sound on.
   - Pack videos ride existing trends: "I tried Monk Mode for 30 days", "Dopamine detox day 1", "That-girl morning routine". Each one ends on adding the pack in one tap.
-  - Widget aesthetic: a clean Home Screen setup with the Daymark widget. Home Screen setup videos are their own genre.
+  - Widget aesthetic: a clean Home Screen setup with the Besa widget. Home Screen setup videos are their own genre.
 - Reply to every review and every comment in the first two weeks.
 
 ## 5. After launch

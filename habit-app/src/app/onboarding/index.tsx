@@ -55,6 +55,7 @@ export default function WelcomeScreen() {
             {'\n'}
             {APP_NAME}
           </Text>
+          <Text style={[FONT.callout, { color: p.muted, textAlign: 'center', marginTop: -10 }]}>{s.tagline}</Text>
         </View>
         <View style={{ gap: 28 }}>
           {features.map((f) => (
