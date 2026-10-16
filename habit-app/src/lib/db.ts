@@ -14,6 +14,8 @@ export type Habit = {
   days: number;
   /** 'HH:MM' local time, or null for no reminder. */
   reminder: string | null;
+  /** Identity statement, e.g. "I'm someone who moves every day." */
+  promise: string | null;
   createdAt: DayKey;
   sort: number;
 };
@@ -32,6 +34,7 @@ type HabitRow = {
   color: string;
   days: number;
   reminder: string | null;
+  promise: string | null;
   created_at: string;
   sort: number;
 };
@@ -46,6 +49,7 @@ const MIGRATIONS: string[] = [
      color TEXT NOT NULL,
      days INTEGER NOT NULL,
      reminder TEXT,
+     promise TEXT,
      created_at TEXT NOT NULL,
      sort INTEGER NOT NULL DEFAULT 0
    );
@@ -85,6 +89,7 @@ const fromRow = (r: HabitRow): Habit => ({
   color: r.color,
   days: r.days,
   reminder: r.reminder,
+  promise: r.promise ?? null,
   createdAt: r.created_at,
   sort: r.sort,
 });
@@ -112,16 +117,16 @@ export async function loadAll(db: SQLiteDatabase): Promise<Snapshot> {
 export async function insertHabit(db: SQLiteDatabase, h: HabitInput, createdAt: DayKey): Promise<number> {
   const max = await db.getFirstAsync<{ m: number | null }>('SELECT MAX(sort) AS m FROM habits');
   const res = await db.runAsync(
-    'INSERT INTO habits (name, icon, color, days, reminder, created_at, sort) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    h.name, h.icon, h.color, h.days, h.reminder, createdAt, (max?.m ?? 0) + 1,
+    'INSERT INTO habits (name, icon, color, days, reminder, promise, created_at, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    h.name, h.icon, h.color, h.days, h.reminder, h.promise, createdAt, (max?.m ?? 0) + 1,
   );
   return res.lastInsertRowId;
 }
 
 export async function updateHabit(db: SQLiteDatabase, id: number, h: HabitInput): Promise<void> {
   await db.runAsync(
-    'UPDATE habits SET name = ?, icon = ?, color = ?, days = ?, reminder = ? WHERE id = ?',
-    h.name, h.icon, h.color, h.days, h.reminder, id,
+    'UPDATE habits SET name = ?, icon = ?, color = ?, days = ?, reminder = ?, promise = ? WHERE id = ?',
+    h.name, h.icon, h.color, h.days, h.reminder, h.promise, id,
   );
 }
 
@@ -155,8 +160,8 @@ export async function replaceAll(db: SQLiteDatabase, habits: Habit[], checkins: 
     await db.execAsync('DELETE FROM checkins; DELETE FROM shields; DELETE FROM habits;');
     for (const h of habits) {
       await db.runAsync(
-        'INSERT INTO habits (id, name, icon, color, days, reminder, created_at, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        h.id, h.name, h.icon, h.color, h.days, h.reminder, h.createdAt, h.sort,
+        'INSERT INTO habits (id, name, icon, color, days, reminder, promise, created_at, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        h.id, h.name, h.icon, h.color, h.days, h.reminder, h.promise, h.createdAt, h.sort,
       );
     }
     for (const c of checkins) {

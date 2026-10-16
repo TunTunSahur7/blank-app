@@ -34,6 +34,10 @@ const FALLBACK: Partial<Record<SFSymbol, string>> = {
   'arrow.down.doc.fill': 'M6 3h8l4 4v14H6zM12 10v7M9 14l3 3 3-3',
   'infinity': 'M7 9a3 3 0 1 0 0 6c3 0 7-6 10-6a3 3 0 1 1 0 6c-3 0-7-6-10-6z',
   'checkmark.circle.fill': 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12.5l3 3 5-6',
+  'rectangle.grid.1x2': 'M4 4h16v7H4zM4 13h16v7H4z',
+  'list.bullet': 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
+  'arrow.uturn.backward': 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  'hand.tap.fill': 'M9 11V5.5a1.5 1.5 0 0 1 3 0V11M12 10V8.5a1.5 1.5 0 0 1 3 0V11M15 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-11 3.3L5 15a1.5 1.5 0 0 1 2.4-1.8L9 15',
   globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z',
   'apps.iphone': 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM8 6h3v3H8zM13 6h3v3h-3zM8 11h3v3H8zM13 11h3v3h-3z',
 };
@@ -165,23 +169,26 @@ export function Section({
   right,
   children,
   style,
+  bare,
 }: {
   title?: string;
   footer?: string;
   right?: ReactNode;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Children lay out on their own (e.g. a stack of cards) instead of inside one grouped card. */
+  bare?: boolean;
 }) {
   const p = usePalette();
   return (
-    <View style={[{ gap: 7 }, style]}>
+    <View style={[{ gap: bare ? 10 : 7 }, style]}>
       {(title || right) && (
         <View style={styles.sectionHead}>
           {title ? <Text style={[FONT.footnote, styles.upper, { color: p.muted }]}>{title}</Text> : <View />}
           {right}
         </View>
       )}
-      <View style={[styles.card, { backgroundColor: p.card }, p.shadow]}>{children}</View>
+      {bare ? <View style={{ gap: 12 }}>{children}</View> : <View style={[styles.card, { backgroundColor: p.card }, p.shadow]}>{children}</View>}
       {footer && <Text style={[FONT.footnote, { color: p.muted, paddingHorizontal: 16, lineHeight: 18 }]}>{footer}</Text>}
     </View>
   );

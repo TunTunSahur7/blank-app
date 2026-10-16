@@ -14,4 +14,4 @@ export const PRIVACY_URL = 'https://github.com/TunTunSahur7/blank-app/blob/main/
 export const MANAGE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 /** Weeks of history a free member sees on a habit. */
-export const FREE_HISTORY_WEEKS = 5;
+export const FREE_HISTORY_WEEKS = 12;

@@ -3,7 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 
 import { Heatmap } from '../../components/Heatmap';
 import { HabitBadge, Sym } from '../../components/ui';
-import { addDays, bestStreak, completionRate, currentStreak, describeDays, type DayKey } from '../../lib/dates';
+import { bestStreak, currentStreak, describeDays, recentRate, type DayKey } from '../../lib/dates';
 import { FREE_HISTORY_WEEKS } from '../../lib/config';
 import { usePro } from '../../lib/purchases';
 import { formatTime } from '../../lib/i18n';
@@ -23,21 +23,13 @@ export default function HabitDetailScreen() {
 
   const days = done.get(habit.id) ?? EMPTY;
   const shielded = shields.get(habit.id);
-  // Measure from when tracking started (creation or the earliest back-filled day), at most 30 days back.
-  let started = habit.createdAt;
-  for (const d of days) if (d < started) started = d;
-  const windowStart = addDays(today, -29);
-  const rateFrom = started > windowStart ? started : windowStart;
-  // Today only counts once it's done, so the rate doesn't dip every morning.
-  const rateTo = days.has(today) ? today : addDays(today, -1);
-
   const unlock = (from: 'insights' | 'history') => router.push({ pathname: '/paywall', params: { from } });
 
   const stats: { label: string; value: string; unit?: string; pro?: boolean; color?: string }[] = [
     { label: t.currentStreak, value: String(currentStreak(days, habit.days, today, shielded)), unit: t.days(2), color: habit.color },
     { label: t.checkins, value: String(days.size) },
     { label: t.bestStreak, value: String(bestStreak(days, habit.days, today, shielded)), unit: t.days(2), pro: true },
-    { label: t.last30, value: `${Math.round(completionRate(days, habit.days, rateFrom, rateTo) * 100)}`, unit: '%', pro: true },
+    { label: t.last30, value: `${Math.round(recentRate(days, habit.days, habit.createdAt, today) * 100)}`, unit: '%', pro: true },
   ];
 
   return (
@@ -55,6 +47,9 @@ export default function HabitDetailScreen() {
         <View style={styles.hero}>
           <HabitBadge icon={habit.icon} color={habit.color} size={68} />
           <Text style={[FONT.title1, { color: p.text, textAlign: 'center' }]}>{habit.name}</Text>
+          {!!habit.promise && (
+            <Text style={[FONT.callout, { color: habit.color, textAlign: 'center', fontWeight: '600' }]}>“{habit.promise}”</Text>
+          )}
           <Text style={[FONT.subhead, { color: p.muted }]}>
             {describeDays(habit.days, t)}
             {habit.reminder ? ` · ${formatTime(habit.reminder, t)}` : ''}

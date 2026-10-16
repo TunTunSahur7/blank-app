@@ -42,7 +42,7 @@
 > PRIVATE BY DESIGN
 > Your habits live on your iPhone and in your iCloud backups. No account, no ads, no tracking. Export a backup anytime.
 >
-> DAYMARK PRO
+> BESA PRO
 > • Interactive widgets: check off habits right from your Home Screen
 > • Streak Shields: miss a day without losing your streak (3 every month)
 > • Insights: best streaks, 30-day rates, your strongest weekday

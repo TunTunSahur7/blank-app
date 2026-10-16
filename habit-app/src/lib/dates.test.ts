@@ -10,6 +10,7 @@ import {
   describeDays,
   isValidKey,
   previousScheduled,
+  recentRate,
   rescuable,
   weekdayOf,
 } from './dates';
@@ -97,4 +98,12 @@ test('rescuable respects schedules', () => {
   const done = set('2026-10-12', '2026-10-13', '2026-10-14');
   assert.deepEqual(rescuable(done, WEEKDAYS, TODAY), { day: '2026-10-15', streak: 3 });
   assert.equal(previousScheduled(WEEKDAYS, '2026-10-12'), '2026-10-09');
+});
+
+test('recentRate measures from the first tracked day and ignores an unfinished today', () => {
+  const done = new Set(['2026-10-14', '2026-10-15']);
+  // Created on the 14th, both days kept, today (16th) still open: 100%.
+  assert.equal(recentRate(done, ALL_DAYS, '2026-10-14', '2026-10-16'), 1);
+  // A back-filled 12th widens the window to 12–15 with the 13th missed: 3 of 4.
+  assert.equal(recentRate(new Set([...done, '2026-10-12']), ALL_DAYS, '2026-10-14', '2026-10-16'), 3 / 4);
 });

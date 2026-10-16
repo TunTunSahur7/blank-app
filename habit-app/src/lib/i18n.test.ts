@@ -24,7 +24,7 @@ test('schedules read naturally in Albanian', () => {
 });
 
 test('the widget gets its labels in the current language', () => {
-  const habits = [{ id: 1, name: 'Pi 8 gota ujë', icon: 'water', color: '#007AFF', days: 127, reminder: null, createdAt: '2026-10-01', sort: 1 }];
+  const habits = [{ id: 1, name: 'Pi 8 gota ujë', icon: 'water', color: '#007AFF', days: 127, reminder: null, promise: null, createdAt: '2026-10-01', sort: 1 }];
   setLanguage('sq');
   const p = widgetPropsFor(habits, new Map([[1, new Set(['2026-10-15'])]]), new Map(), '2026-10-16', false);
   assert.equal(p.weekday, 'E premte');

@@ -1,13 +1,15 @@
 import * as Haptics from 'expo-haptics';
 import { Redirect, router } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Celebration } from '../../components/Celebration';
+import { HabitCard } from '../../components/HabitCard';
 import { HabitRow } from '../../components/HabitRow';
+import { WeekStrip } from '../../components/WeekStrip';
 import { LogoMark, PrimaryButton, Ring, Section, Sym } from '../../components/ui';
-import { currentStreak, fromKey, isScheduled, rescuable, type DayKey } from '../../lib/dates';
+import { addDays, currentStreak, fromKey, isScheduled, rescuable, weekdayOf, type DayKey } from '../../lib/dates';
 import type { Habit } from '../../lib/db';
 import { SHIELDS_PER_MONTH, usePro } from '../../lib/purchases';
 import { formatLongDate } from '../../lib/i18n';
@@ -26,12 +28,29 @@ export default function TodayScreen() {
     applyShield, shieldsUsedThisMonth, settings, setSetting,
   } = useHabits();
 
+  // The day being looked at: today, or one of the last six days picked in the week strip.
+  const [picked, setPicked] = useState<DayKey | null>(null);
+  const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
+  const day = picked && week.includes(picked) ? picked : today;
+  const isToday = day === today;
+  const layout = settings.today_layout === 'list' ? 'list' : 'cards';
+  const [hintAgain, setHintAgain] = useState(false);
+  const showHint = settings.hold_learned !== '1' || hintAgain;
+
   const { due, notDue } = useMemo(
     () => ({
-      due: habits.filter((h) => isScheduled(h.days, today)),
-      notDue: habits.filter((h) => !isScheduled(h.days, today)),
+      due: habits.filter((h) => isScheduled(h.days, day)),
+      notDue: habits.filter((h) => !isScheduled(h.days, day)),
     }),
-    [habits, today],
+    [habits, day],
+  );
+
+  const dayProgress = useCallback(
+    (d: DayKey) => {
+      const scheduled = habits.filter((h) => isScheduled(h.days, d));
+      return { done: scheduled.filter((h) => done.get(h.id)?.has(d)).length, total: scheduled.length };
+    },
+    [habits, done],
   );
 
   // Streaks that broke yesterday and can still be saved.
@@ -47,26 +66,41 @@ export default function TodayScreen() {
   if (!ready) return <ActivityIndicator style={{ flex: 1, backgroundColor: p.bg }} />;
   if (!onboarded) return <Redirect href="/onboarding" />;
 
-  const doneCount = due.filter((h) => done.get(h.id)?.has(today)).length;
-  const open = due.filter((h) => !done.get(h.id)?.has(today));
-  const atStake = Math.max(0, ...open.map((h) => currentStreak(done.get(h.id) ?? EMPTY, h.days, today, shields.get(h.id))));
+  const doneCount = due.filter((h) => done.get(h.id)?.has(day)).length;
+  const open = due.filter((h) => !done.get(h.id)?.has(day));
+  const atStake = Math.max(0, ...open.map((h) => currentStreak(done.get(h.id) ?? EMPTY, h.days, day, shields.get(h.id))));
   const progress = due.length ? doneCount / due.length : 0;
   const summary =
     due.length === 0
       ? s.summaryRest
-      : open.length === 0
-        ? s.summaryClosed
-        : atStake >= 2
-          ? s.summaryKeep(open.length, atStake)
-          : s.summaryLeft(open.length);
+      : !isToday
+        ? s.pastDaySummary
+        : open.length === 0
+          ? s.summaryClosed
+          : atStake >= 2
+            ? s.summaryKeep(open.length, atStake)
+            : s.summaryLeft(open.length);
 
   const onToggle = (habitId: number) => {
     const wasLast = open.length === 1 && open[0].id === habitId;
-    toggle(habitId, today)
+    if (settings.hold_learned !== '1') setSetting('hold_learned', '1');
+    setHintAgain(false);
+    toggle(habitId, day)
       .then(() => {
         if (wasLast) setTimeout(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success), 250);
       })
       .catch(() => Alert.alert(s.couldntSave, s.tryAgain));
+  };
+
+  // A quick tap instead of a hold: remind them how it works.
+  const onTap = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    setHintAgain(true);
+  };
+
+  const switchLayout = () => {
+    Haptics.selectionAsync();
+    setSetting('today_layout', layout === 'cards' ? 'list' : 'cards');
   };
 
   const rescue = async (habit: Habit, day: DayKey, streak: number) => {
@@ -83,7 +117,36 @@ export default function TodayScreen() {
     Alert.alert(s.streakSavedTitle, s.streakSavedBody(streak, habit.name));
   };
 
-  const dateLabel = formatLongDate(fromKey(today), s);
+  const dateLabel = formatLongDate(fromKey(day), s);
+  const title = isToday ? s.today : day === addDays(today, -1) ? s.yesterday : s.weekdays[weekdayOf(day)];
+
+  const renderHabit = (h: Habit, i: number, list: Habit[], dimmed?: boolean) =>
+    layout === 'cards' ? (
+      <HabitCard
+        key={h.id}
+        habit={h}
+        done={done.get(h.id) ?? EMPTY}
+        shields={shields.get(h.id)}
+        day={day}
+        today={today}
+        isPro={isPro}
+        dimmed={dimmed}
+        onToggle={() => onToggle(h.id)}
+        onTap={onTap}
+      />
+    ) : (
+      <HabitRow
+        key={h.id}
+        habit={h}
+        done={done.get(h.id) ?? EMPTY}
+        shields={shields.get(h.id)}
+        today={day}
+        last={i === list.length - 1}
+        dimmed={dimmed}
+        onToggle={() => onToggle(h.id)}
+        onTap={onTap}
+      />
+    );
 
   return (
     <View style={{ flex: 1, backgroundColor: p.bg }}>
@@ -91,8 +154,19 @@ export default function TodayScreen() {
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[FONT.footnote, styles.eyebrow, { color: p.muted }]}>{dateLabel}</Text>
-            <Text style={[FONT.largeTitle, { color: p.text }]}>{s.today}</Text>
+            <Text style={[FONT.largeTitle, { color: p.text }]}>{title}</Text>
           </View>
+          {habits.length > 0 && (
+            <Pressable
+              onPress={switchLayout}
+              style={({ pressed }) => [styles.add, { backgroundColor: p.fill, opacity: pressed ? 0.6 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel={layout === 'cards' ? s.showList : s.showCards}
+              hitSlop={6}
+            >
+              <Sym name={layout === 'cards' ? 'list.bullet' : 'rectangle.grid.1x2'} size={15} color={p.text} weight="semibold" />
+            </Pressable>
+          )}
           <Pressable
             onPress={() => router.push('/habit/new')}
             style={({ pressed }) => [styles.add, { backgroundColor: `${p.accent}1F`, opacity: pressed ? 0.6 : 1 }]}
@@ -118,7 +192,20 @@ export default function TodayScreen() {
           </View>
         ) : (
           <>
-            {rescues.map(({ habit, r }) => (
+            <WeekStrip days={week} selected={day} today={today} progress={dayProgress} onSelect={setPicked} />
+
+            {!isToday && (
+              <Pressable
+                onPress={() => setPicked(null)}
+                style={({ pressed }) => [styles.back, { backgroundColor: `${p.accent}1F`, opacity: pressed ? 0.6 : 1 }]}
+                accessibilityRole="button"
+              >
+                <Sym name="arrow.uturn.backward" size={13} color={p.accent} weight="bold" />
+                <Text style={[FONT.subhead, { color: p.accent, fontWeight: '600' }]}>{s.backToToday}</Text>
+              </Pressable>
+            )}
+
+            {isToday && rescues.map(({ habit, r }) => (
               <View key={habit.id} style={[styles.rescue, { backgroundColor: p.card }, p.shadow]}>
                 <View style={[styles.rescueIcon, { backgroundColor: `${habit.color}22` }]}>
                   <Sym name="shield.fill" size={22} color={habit.color} />
@@ -166,35 +253,14 @@ export default function TodayScreen() {
             </View>
 
             {due.length > 0 && (
-              <Section title={s.sectionHabits}>
-                {due.map((h, i) => (
-                  <HabitRow
-                    key={h.id}
-                    habit={h}
-                    done={done.get(h.id) ?? EMPTY}
-                    shields={shields.get(h.id)}
-                    today={today}
-                    last={i === due.length - 1}
-                    onToggle={() => onToggle(h.id)}
-                  />
-                ))}
+              <Section title={s.sectionHabits} bare={layout === 'cards'} footer={showHint && open.length > 0 ? s.holdHint : undefined}>
+                {due.map((h, i) => renderHabit(h, i, due))}
               </Section>
             )}
 
             {notDue.length > 0 && (
-              <Section title={s.sectionNotToday}>
-                {notDue.map((h, i) => (
-                  <HabitRow
-                    key={h.id}
-                    habit={h}
-                    done={done.get(h.id) ?? EMPTY}
-                    shields={shields.get(h.id)}
-                    today={today}
-                    last={i === notDue.length - 1}
-                    dimmed
-                    onToggle={() => onToggle(h.id)}
-                  />
-                ))}
+              <Section title={isToday ? s.sectionNotToday : s.sectionNotScheduled} bare={layout === 'cards'}>
+                {notDue.map((h, i) => renderHabit(h, i, notDue, true))}
               </Section>
             )}
             <Pressable
@@ -215,7 +281,7 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 20 },
-  header: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 4 },
+  header: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 4 },
   eyebrow: { fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.2 },
   add: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   summary: { borderRadius: 18, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 18 },
@@ -226,5 +292,6 @@ const styles = StyleSheet.create({
   rescueActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
   rescueBtn: { paddingHorizontal: 14, height: 36, borderRadius: 18, justifyContent: 'center' },
   rescueSkip: { paddingHorizontal: 10, height: 36, justifyContent: 'center' },
+  back: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 6, paddingHorizontal: 14, height: 34, borderRadius: 17, marginTop: -8 },
   more: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44 },
 });

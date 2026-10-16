@@ -139,3 +139,16 @@ function minKey(keys: ReadonlySet<DayKey>): DayKey {
   for (const k of keys) if (min === null || k < min) min = k;
   return min as DayKey;
 }
+
+/**
+ * Completion over the last 30 days, measured from when tracking started (creation or the
+ * earliest back-filled day). Today only counts once it's done, so the rate doesn't dip every morning.
+ */
+export function recentRate(done: ReadonlySet<DayKey>, days: number, createdAt: DayKey, today: DayKey): number {
+  let started = createdAt;
+  for (const d of done) if (d < started) started = d;
+  const windowStart = addDays(today, -29);
+  const from = started > windowStart ? started : windowStart;
+  const to = done.has(today) ? today : addDays(today, -1);
+  return completionRate(done, days, from, to);
+}

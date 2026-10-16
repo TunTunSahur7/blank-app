@@ -39,11 +39,12 @@ export function parseBackup(text: string): Backup {
       typeof h.icon === 'string' && typeof h.color === 'string' &&
       Number.isInteger(h.days) && h.days >= 0 && h.days <= ALL_DAYS &&
       (h.reminder === null || (typeof h.reminder === 'string' && /^\d{2}:\d{2}$/.test(h.reminder))) &&
+      (h.promise == null || typeof h.promise === 'string') &&
       isValidKey(h.createdAt);
     if (!ok) throw new Error(`Habit #${i + 1} in the backup is damaged.`);
     return {
       id: h.id, name: h.name, icon: h.icon, color: h.color, days: h.days,
-      reminder: h.reminder, createdAt: h.createdAt, sort: Number.isInteger(h.sort) ? h.sort : i,
+      reminder: h.reminder, promise: h.promise ?? null, createdAt: h.createdAt, sort: Number.isInteger(h.sort) ? h.sort : i,
     };
   });
 

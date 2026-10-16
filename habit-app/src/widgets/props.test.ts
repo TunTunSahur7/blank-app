@@ -5,7 +5,7 @@ import type { Habit } from '../lib/db';
 import { editsFrom, widgetPropsFor, widgetTimeline } from './props';
 
 const habit = (id: number, name: string, days = 127): Habit => ({
-  id, name, icon: 'water', color: '#007AFF', days, reminder: null, createdAt: '2026-10-01', sort: id,
+  id, name, icon: 'water', color: '#007AFF', days, reminder: null, promise: null, createdAt: '2026-10-01', sort: id,
 });
 const habits = [habit(1, 'Water'), habit(2, 'Read'), habit(3, 'Gym', 0b0101010)];
 const done = new Map<number, Set<string>>([

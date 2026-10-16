@@ -22,7 +22,7 @@ type Props = {
   onDelete?: () => void;
 };
 
-const DEFAULT: HabitInput = { name: '', icon: 'water', color: HABIT_COLORS[0].hex, days: ALL_DAYS, reminder: null };
+const DEFAULT: HabitInput = { name: '', icon: 'water', color: HABIT_COLORS[0].hex, days: ALL_DAYS, reminder: null, promise: null };
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -44,6 +44,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
   const [color, setColor] = useState(initial.color);
   const [days, setDays] = useState(initial.days);
   const [reminder, setReminder] = useState<string | null>(initial.reminder);
+  const [promise, setPromise] = useState(initial.promise ?? '');
   const [saving, setSaving] = useState(false);
 
   const canSave = name.trim().length > 0 && days !== 0 && !saving;
@@ -67,7 +68,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
     if (!canSave) return;
     setSaving(true);
     try {
-      await onSubmit({ name: name.trim(), icon, color, days, reminder });
+      await onSubmit({ name: name.trim(), icon, color, days, reminder, promise: promise.trim() || null });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       Alert.alert(s.couldntSave, s.couldntSaveHabit);
@@ -123,6 +124,19 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
             accessibilityLabel={s.habitName}
           />
         </View>
+
+        <Section title={s.promise} footer={s.promiseFooter}>
+          <TextInput
+            value={promise}
+            onChangeText={setPromise}
+            placeholder={s.promisePlaceholder}
+            placeholderTextColor={p.muted}
+            maxLength={80}
+            returnKeyType="done"
+            style={[FONT.body, styles.input, { color: p.text }]}
+            accessibilityLabel={s.promise}
+          />
+        </Section>
 
         <Section title={s.icon}>
           <View style={styles.iconGrid}>

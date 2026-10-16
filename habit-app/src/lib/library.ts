@@ -12,7 +12,7 @@ const MWF = 0b0101010;
 
 type Text = { en: string; sq: string };
 
-export type LibraryEntry = Omit<HabitInput, 'name'> & { id: string; name: Text; why: Text };
+export type LibraryEntry = Omit<HabitInput, 'name' | 'promise'> & { id: string; name: Text; why: Text };
 
 /** A library habit in one language, ready to add. */
 export type LibraryHabit = HabitInput & { id: string; why: string };
@@ -186,7 +186,7 @@ export const PACKS: Pack[] = [
 
 /** A library entry in one language. */
 export function localize(e: LibraryEntry, lang: Lang): LibraryHabit {
-  return { id: e.id, name: e.name[lang], why: e.why[lang], icon: e.icon, color: e.color, days: e.days, reminder: e.reminder };
+  return { id: e.id, name: e.name[lang], why: e.why[lang], icon: e.icon, color: e.color, days: e.days, reminder: e.reminder, promise: null };
 }
 
 export const categoriesFor = (lang: Lang) => CATEGORIES.filter((c) => !c.only || c.only === lang);

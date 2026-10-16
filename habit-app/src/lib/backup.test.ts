@@ -6,7 +6,7 @@ import type { Habit } from './db';
 
 const habit: Habit = {
   id: 1, name: 'Read', icon: 'read', color: '#3D7BFF', days: 127,
-  reminder: '21:30', createdAt: '2026-10-01', sort: 1,
+  reminder: '21:30', promise: 'I move every day', createdAt: '2026-10-01', sort: 1,
 };
 
 test('round trip', () => {
