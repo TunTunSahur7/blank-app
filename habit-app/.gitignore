@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# The repo root .gitignore (Python template) ignores lib/ — keep our source.
+!src/lib/
