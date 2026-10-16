@@ -2,19 +2,20 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Alert } from 'react-native';
 
 import { HabitForm } from '../../../components/HabitForm';
-import { useHabits } from '../../../lib/store';
+import { useHabits, useStrings } from '../../../lib/store';
 
 export default function EditHabitScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const s = useStrings();
   const { habits, update, remove } = useHabits();
   const habit = habits.find((h) => h.id === Number(id));
   if (!habit) return null;
 
   const confirmDelete = () =>
-    Alert.alert(`Delete “${habit.name}”?`, 'This removes the habit and its whole history. This can’t be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(s.deleteConfirmTitle(habit.name), s.deleteConfirmBody, [
+      { text: s.cancel, style: 'cancel' },
       {
-        text: 'Delete',
+        text: s.delete,
         style: 'destructive',
         onPress: async () => {
           await remove(habit.id);
@@ -25,9 +26,9 @@ export default function EditHabitScreen() {
 
   return (
     <HabitForm
-      title="Edit Habit"
+      title={s.editHabitTitle}
       initial={habit}
-      submitLabel="Save"
+      submitLabel={s.save}
       onSubmit={async (input) => {
         await update(habit.id, input);
         router.back();

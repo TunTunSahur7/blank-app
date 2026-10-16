@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router/tabs';
 import type { SFSymbol } from 'expo-symbols';
 
 import { Sym } from '../../components/ui';
+import { useStrings } from '../../lib/store';
 import { usePalette } from '../../lib/theme';
 
 // Web previews only. On iOS the native tab bar (_layout.tsx) is used.
@@ -12,6 +13,7 @@ const icon = (name: SFSymbol) =>
 
 export default function TabsLayout() {
   const p = usePalette();
+  const s = useStrings();
   return (
     <Tabs
       screenOptions={{
@@ -28,9 +30,9 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Today', tabBarIcon: icon('checkmark.circle.fill') }} />
-      <Tabs.Screen name="progress" options={{ title: 'Progress', tabBarIcon: icon('chart.bar.fill') }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: icon('gearshape.fill') }} />
+      <Tabs.Screen name="index" options={{ title: s.tabToday, tabBarIcon: icon('checkmark.circle.fill') }} />
+      <Tabs.Screen name="progress" options={{ title: s.tabProgress, tabBarIcon: icon('chart.bar.fill') }} />
+      <Tabs.Screen name="settings" options={{ title: s.tabSettings, tabBarIcon: icon('gearshape.fill') }} />
     </Tabs>
   );
 }

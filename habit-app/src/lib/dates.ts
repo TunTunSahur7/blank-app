@@ -123,11 +123,15 @@ export function completionRate(done: ReadonlySet<DayKey>, days: number, from: Da
   return scheduled === 0 ? 0 : hit / scheduled;
 }
 
-export function describeDays(days: number): string {
-  if (days === ALL_DAYS) return 'Every day';
-  if (days === 0b0111110) return 'Weekdays';
-  if (days === 0b1000001) return 'Weekends';
-  return WEEKDAY_SHORT.filter((_, i) => days & (1 << i)).join(', ');
+export type DayLabels = { everyDay: string; weekdaysOnly: string; weekends: string; weekdaysShort: string[] };
+
+const EN_LABELS: DayLabels = { everyDay: 'Every day', weekdaysOnly: 'Weekdays', weekends: 'Weekends', weekdaysShort: WEEKDAY_SHORT };
+
+export function describeDays(days: number, labels: DayLabels = EN_LABELS): string {
+  if (days === ALL_DAYS) return labels.everyDay;
+  if (days === 0b0111110) return labels.weekdaysOnly;
+  if (days === 0b1000001) return labels.weekends;
+  return labels.weekdaysShort.filter((_, i) => days & (1 << i)).join(', ');
 }
 
 function minKey(keys: ReadonlySet<DayKey>): DayKey {

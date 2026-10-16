@@ -3,24 +3,14 @@ import { useEffect, useState } from 'react';
 import { Animated, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { APP_STORE_URL } from '../lib/config';
-import type { Celebration as CelebrationData } from '../lib/store';
+import { useStrings, type Celebration as CelebrationData } from '../lib/store';
 import { FONT, usePalette } from '../lib/theme';
 import { HabitBadge, PrimaryButton, Ring, Sym } from './ui';
 
-const LINES: Record<number, string> = {
-  3: 'A great start. The first days are the hardest.',
-  7: 'One full week. This is how habits begin.',
-  14: 'Two weeks strong.',
-  21: 'Three weeks. This is becoming part of you.',
-  30: 'A whole month. Remarkable.',
-  50: 'Fifty days of showing up.',
-  75: 'Seventy-five days. Unstoppable.',
-  100: 'Triple digits. Few people get here.',
-  365: 'One full year. Extraordinary.',
-};
 
 export function Celebration({ data, onClose }: { data: CelebrationData | null; onClose: () => void }) {
   const p = usePalette();
+  const s = useStrings();
   const [scale] = useState(() => new Animated.Value(0.85));
 
   useEffect(() => {
@@ -35,7 +25,7 @@ export function Celebration({ data, onClose }: { data: CelebrationData | null; o
 
   const share = () =>
     Share.share({
-      message: `I just hit a ${streak}-day streak: ${habit.name}. Tracking it with Daymark.${APP_STORE_URL ? ` ${APP_STORE_URL}` : ''}`,
+      message: s.shareStreak(streak, habit.name) + (APP_STORE_URL ? ` ${APP_STORE_URL}` : ''),
     }).catch(() => {});
 
   return (
@@ -51,17 +41,17 @@ export function Celebration({ data, onClose }: { data: CelebrationData | null; o
           <View style={{ alignItems: 'center', gap: 6 }}>
             <View style={styles.titleRow}>
               <Sym name="flame.fill" size={22} color="#FF9500" />
-              <Text style={[FONT.title1, { color: p.text }]}>{streak}-day streak</Text>
+              <Text style={[FONT.title1, { color: p.text }]}>{s.streak(streak)}</Text>
             </View>
             <Text style={[FONT.subhead, { color: p.muted, textAlign: 'center' }]}>
-              {habit.name}. {LINES[streak] ?? 'Keep going.'}
+              {habit.name}. {s.milestoneLines[streak] ?? s.milestoneDefault}
             </Text>
           </View>
           <View style={{ alignSelf: 'stretch', gap: 10 }}>
-            <PrimaryButton title="Keep Going" onPress={onClose} color={habit.color} />
+            <PrimaryButton title={s.keepGoing} onPress={onClose} color={habit.color} />
             <Pressable onPress={share} style={styles.share} accessibilityRole="button">
               <Sym name="square.and.arrow.up" size={16} color={p.accent} />
-              <Text style={[FONT.headline, { color: p.accent }]}>Share</Text>
+              <Text style={[FONT.headline, { color: p.accent }]}>{s.share}</Text>
             </Pressable>
           </View>
         </Animated.View>

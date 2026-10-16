@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { addDays, fromKey, isScheduled, weekdayOf, type DayKey } from '../lib/dates';
+import { useStrings } from '../lib/store';
 import { FONT, usePalette } from '../lib/theme';
 import { Sym } from './ui';
 
@@ -20,11 +21,11 @@ type Props = {
 
 const WEEKS = 17;
 const GAP = 4;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** Contribution-style grid: one column per week, Sunday on top. Tap a past day to fix it. */
 export function Heatmap({ done, shields, days, color, today, freeWeeks, onToggle, onLocked }: Props) {
   const p = usePalette();
+  const s = useStrings();
   const [width, setWidth] = useState(0);
   // Cells fill the card's width, so the grid fits every iPhone from SE to Pro Max.
   const cell = width ? Math.min(20, Math.floor((width - GAP * (WEEKS - 1)) / WEEKS)) : 0;
@@ -43,7 +44,7 @@ export function Heatmap({ done, shields, days, color, today, freeWeeks, onToggle
               if (d.getDate() > 7 || w > WEEKS - 2) return null;
               return (
                 <Text key={start} style={[styles.month, { left: w * (cell + GAP), color: p.muted }]}>
-                  {MONTHS[d.getMonth()]}
+                  {s.monthsShort[d.getMonth()]}
                 </Text>
               );
             })}
@@ -100,12 +101,12 @@ export function Heatmap({ done, shields, days, color, today, freeWeeks, onToggle
             <Pressable
               onPress={onLocked}
               accessibilityRole="button"
-              accessibilityLabel="Unlock your full history with Daymark Pro"
+              accessibilityLabel={`${s.fullHistory}. ${s.unlockWithPro}`}
               style={[styles.lock, { width: lockedCols * (cell + GAP) - GAP }]}
             >
               <View style={[styles.lockPill, { backgroundColor: p.card }, p.shadow]}>
                 <Sym name="lock.fill" size={12} color={p.accent} />
-                <Text style={[FONT.footnote, { color: p.text, fontWeight: '600' }]}>Full history</Text>
+                <Text style={[FONT.footnote, { color: p.text, fontWeight: '600' }]}>{s.fullHistory}</Text>
               </View>
             </Pressable>
           )}

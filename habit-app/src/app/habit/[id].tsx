@@ -6,21 +6,16 @@ import { HabitBadge, Sym } from '../../components/ui';
 import { addDays, bestStreak, completionRate, currentStreak, describeDays, type DayKey } from '../../lib/dates';
 import { FREE_HISTORY_WEEKS } from '../../lib/config';
 import { usePro } from '../../lib/purchases';
-import { useHabits } from '../../lib/store';
+import { formatTime } from '../../lib/i18n';
+import { useHabits, useStrings } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
 
 const EMPTY: ReadonlySet<DayKey> = new Set();
 
-function formatTime(hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
-
 export default function HabitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const p = usePalette();
+  const t = useStrings();
   const { isPro } = usePro();
   const { habits, done, shields, today, toggle } = useHabits();
   const habit = habits.find((h) => h.id === Number(id));
@@ -39,10 +34,10 @@ export default function HabitDetailScreen() {
   const unlock = (from: 'insights' | 'history') => router.push({ pathname: '/paywall', params: { from } });
 
   const stats: { label: string; value: string; unit?: string; pro?: boolean; color?: string }[] = [
-    { label: 'Current streak', value: String(currentStreak(days, habit.days, today, shielded)), unit: 'days', color: habit.color },
-    { label: 'Check-ins', value: String(days.size) },
-    { label: 'Best streak', value: String(bestStreak(days, habit.days, today, shielded)), unit: 'days', pro: true },
-    { label: 'Last 30 days', value: `${Math.round(completionRate(days, habit.days, rateFrom, rateTo) * 100)}`, unit: '%', pro: true },
+    { label: t.currentStreak, value: String(currentStreak(days, habit.days, today, shielded)), unit: t.days(2), color: habit.color },
+    { label: t.checkins, value: String(days.size) },
+    { label: t.bestStreak, value: String(bestStreak(days, habit.days, today, shielded)), unit: t.days(2), pro: true },
+    { label: t.last30, value: `${Math.round(completionRate(days, habit.days, rateFrom, rateTo) * 100)}`, unit: '%', pro: true },
   ];
 
   return (
@@ -51,7 +46,7 @@ export default function HabitDetailScreen() {
         options={{
           headerRight: () => (
             <Pressable onPress={() => router.push(`/habit/edit/${habit.id}`)} hitSlop={8} accessibilityRole="button">
-              <Text style={[FONT.body, { color: p.accent }]}>Edit</Text>
+              <Text style={[FONT.body, { color: p.accent }]}>{t.edit}</Text>
             </Pressable>
           ),
         }}
@@ -61,8 +56,8 @@ export default function HabitDetailScreen() {
           <HabitBadge icon={habit.icon} color={habit.color} size={68} />
           <Text style={[FONT.title1, { color: p.text, textAlign: 'center' }]}>{habit.name}</Text>
           <Text style={[FONT.subhead, { color: p.muted }]}>
-            {describeDays(habit.days)}
-            {habit.reminder ? ` · ${formatTime(habit.reminder)}` : ''}
+            {describeDays(habit.days, t)}
+            {habit.reminder ? ` · ${formatTime(habit.reminder, t)}` : ''}
           </Text>
         </View>
 
@@ -76,12 +71,12 @@ export default function HabitDetailScreen() {
                 onPress={() => unlock('insights')}
                 style={[styles.stat, { backgroundColor: p.card }, p.shadow]}
                 accessibilityRole={locked ? 'button' : undefined}
-                accessibilityLabel={locked ? `${s.label}. Unlock with Daymark Pro.` : `${s.label}: ${s.value} ${s.unit ?? ''}`}
+                accessibilityLabel={locked ? `${s.label}. ${t.unlockWithPro}` : `${s.label}: ${s.value} ${s.unit ?? ''}`}
               >
                 {locked ? (
                   <View style={styles.statValue}>
                     <Sym name="lock.fill" size={18} color={p.accent} />
-                    <Text style={[FONT.headline, { color: p.accent }]}>Pro</Text>
+                    <Text style={[FONT.headline, { color: p.accent }]}>{t.pro}</Text>
                   </View>
                 ) : (
                   <View style={styles.statValue}>
@@ -97,8 +92,8 @@ export default function HabitDetailScreen() {
 
         <View style={[styles.card, { backgroundColor: p.card }, p.shadow]}>
           <View style={styles.cardHead}>
-            <Text style={[FONT.headline, { color: p.text }]}>History</Text>
-            <Text style={[FONT.footnote, { color: p.muted }]}>{isPro ? 'Last 17 weeks' : `Last ${FREE_HISTORY_WEEKS} weeks`}</Text>
+            <Text style={[FONT.headline, { color: p.text }]}>{t.history}</Text>
+            <Text style={[FONT.footnote, { color: p.muted }]}>{t.lastWeeks(isPro ? 17 : FREE_HISTORY_WEEKS)}</Text>
           </View>
           <Heatmap
             done={days}
@@ -107,10 +102,10 @@ export default function HabitDetailScreen() {
             color={habit.color}
             today={today}
             freeWeeks={isPro ? null : FREE_HISTORY_WEEKS}
-            onToggle={(day) => toggle(habit.id, day).catch(() => Alert.alert("Couldn't save", 'Please try again.'))}
+            onToggle={(day) => toggle(habit.id, day).catch(() => Alert.alert(t.couldntSave, t.tryAgain))}
             onLocked={() => unlock('history')}
           />
-          <Text style={[FONT.footnote, { color: p.muted }]}>Missed a check-in? Tap any past day to fill it in.</Text>
+          <Text style={[FONT.footnote, { color: p.muted }]}>{t.historyHint}</Text>
         </View>
       </ScrollView>
     </>

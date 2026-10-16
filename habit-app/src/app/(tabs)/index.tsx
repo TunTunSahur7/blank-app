@@ -10,7 +10,8 @@ import { LogoMark, PrimaryButton, Ring, Section, Sym } from '../../components/ui
 import { currentStreak, fromKey, isScheduled, rescuable, type DayKey } from '../../lib/dates';
 import type { Habit } from '../../lib/db';
 import { SHIELDS_PER_MONTH, usePro } from '../../lib/purchases';
-import { useHabits } from '../../lib/store';
+import { formatLongDate } from '../../lib/i18n';
+import { useHabits, useStrings } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
 
 const EMPTY: ReadonlySet<DayKey> = new Set();
@@ -18,6 +19,7 @@ const EMPTY: ReadonlySet<DayKey> = new Set();
 export default function TodayScreen() {
   const p = usePalette();
   const insets = useSafeAreaInsets();
+  const s = useStrings();
   const { isPro } = usePro();
   const {
     ready, onboarded, habits, done, shields, today, toggle, celebration, dismissCelebration,
@@ -51,12 +53,12 @@ export default function TodayScreen() {
   const progress = due.length ? doneCount / due.length : 0;
   const summary =
     due.length === 0
-      ? 'A rest day. Nothing scheduled.'
+      ? s.summaryRest
       : open.length === 0
-        ? 'Day closed. See you tomorrow.'
+        ? s.summaryClosed
         : atStake >= 2
-          ? `${open.length} left. Keep your ${atStake}-day streak alive.`
-          : `${open.length} left. You’ve got this.`;
+          ? s.summaryKeep(open.length, atStake)
+          : s.summaryLeft(open.length);
 
   const onToggle = (habitId: number) => {
     const wasLast = open.length === 1 && open[0].id === habitId;
@@ -64,7 +66,7 @@ export default function TodayScreen() {
       .then(() => {
         if (wasLast) setTimeout(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success), 250);
       })
-      .catch(() => Alert.alert("Couldn't save", 'Please try again.'));
+      .catch(() => Alert.alert(s.couldntSave, s.tryAgain));
   };
 
   const rescue = async (habit: Habit, day: DayKey, streak: number) => {
@@ -73,15 +75,15 @@ export default function TodayScreen() {
       return;
     }
     if (shieldsUsedThisMonth() >= SHIELDS_PER_MONTH) {
-      Alert.alert('No shields left this month', `You get ${SHIELDS_PER_MONTH} Streak Shields each month. New ones arrive on the 1st.`);
+      Alert.alert(s.noShieldsTitle, s.noShieldsBody(SHIELDS_PER_MONTH));
       return;
     }
     await applyShield(habit.id, day);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('Streak saved', `Your ${streak}-day ${habit.name} streak is safe.`);
+    Alert.alert(s.streakSavedTitle, s.streakSavedBody(streak, habit.name));
   };
 
-  const dateLabel = fromKey(today).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateLabel = formatLongDate(fromKey(today), s);
 
   return (
     <View style={{ flex: 1, backgroundColor: p.bg }}>
@@ -89,13 +91,13 @@ export default function TodayScreen() {
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[FONT.footnote, styles.eyebrow, { color: p.muted }]}>{dateLabel}</Text>
-            <Text style={[FONT.largeTitle, { color: p.text }]}>Today</Text>
+            <Text style={[FONT.largeTitle, { color: p.text }]}>{s.today}</Text>
           </View>
           <Pressable
             onPress={() => router.push('/habit/new')}
             style={({ pressed }) => [styles.add, { backgroundColor: `${p.accent}1F`, opacity: pressed ? 0.6 : 1 }]}
             accessibilityRole="button"
-            accessibilityLabel="New habit"
+            accessibilityLabel={s.newHabit}
             hitSlop={6}
           >
             <Sym name="plus" size={17} color={p.accent} weight="bold" />
@@ -105,13 +107,13 @@ export default function TodayScreen() {
         {habits.length === 0 ? (
           <View style={[styles.empty, { backgroundColor: p.card }]}>
             <LogoMark size={72} />
-            <Text style={[FONT.title3, { color: p.text, textAlign: 'center' }]}>Start with one small habit</Text>
-            <Text style={[FONT.subhead, { color: p.muted, textAlign: 'center' }]}>Unlimited habits, free. Everything stays on your iPhone.</Text>
+            <Text style={[FONT.title3, { color: p.text, textAlign: 'center' }]}>{s.emptyTitle}</Text>
+            <Text style={[FONT.subhead, { color: p.muted, textAlign: 'center' }]}>{s.emptyBody}</Text>
             <View style={{ alignSelf: 'stretch', marginTop: 6 }}>
-              <PrimaryButton title="Browse the Habit Library" onPress={() => router.push('/habit/library')} />
+              <PrimaryButton title={s.browseLibrary} onPress={() => router.push('/habit/library')} />
             </View>
             <Pressable onPress={() => router.push('/habit/new')} hitSlop={8} accessibilityRole="button">
-              <Text style={[FONT.headline, { color: p.accent }]}>Create Your Own</Text>
+              <Text style={[FONT.headline, { color: p.accent }]}>{s.createOwn}</Text>
             </Pressable>
           </View>
         ) : (
@@ -122,9 +124,9 @@ export default function TodayScreen() {
                   <Sym name="shield.fill" size={22} color={habit.color} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[FONT.headline, { color: p.text }]}>Your {r.streak}-day streak broke</Text>
+                  <Text style={[FONT.headline, { color: p.text }]}>{s.rescueTitle(r.streak)}</Text>
                   <Text style={[FONT.footnote, { color: p.muted }]}>
-                    {habit.name} was missed yesterday. A Streak Shield can still save it.
+                    {s.rescueBody(habit.name)}
                   </Text>
                   <View style={styles.rescueActions}>
                     <Pressable
@@ -132,14 +134,14 @@ export default function TodayScreen() {
                       style={[styles.rescueBtn, { backgroundColor: habit.color }]}
                       accessibilityRole="button"
                     >
-                      <Text style={[FONT.subhead, { color: '#FFF', fontWeight: '600' }]}>Save Streak</Text>
+                      <Text style={[FONT.subhead, { color: '#FFF', fontWeight: '600' }]}>{s.rescueSave}</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => setSetting(`rescue_dismissed:${habit.id}:${r.day}`, '1')}
                       style={styles.rescueSkip}
                       accessibilityRole="button"
                     >
-                      <Text style={[FONT.subhead, { color: p.muted }]}>Let It Go</Text>
+                      <Text style={[FONT.subhead, { color: p.muted }]}>{s.rescueLetGo}</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -157,14 +159,14 @@ export default function TodayScreen() {
               </View>
               <View style={{ flex: 1, gap: 3 }}>
                 <Text style={[FONT.title2, { color: p.text }]}>
-                  {due.length === 0 ? 'Rest day' : open.length === 0 ? 'All done' : `${doneCount} of ${due.length} done`}
+                  {due.length === 0 ? s.restDay : open.length === 0 ? s.allDone : s.doneOf(doneCount, due.length)}
                 </Text>
                 <Text style={[FONT.subhead, { color: p.muted }]}>{summary}</Text>
               </View>
             </View>
 
             {due.length > 0 && (
-              <Section title="Habits">
+              <Section title={s.sectionHabits}>
                 {due.map((h, i) => (
                   <HabitRow
                     key={h.id}
@@ -180,7 +182,7 @@ export default function TodayScreen() {
             )}
 
             {notDue.length > 0 && (
-              <Section title="Not today">
+              <Section title={s.sectionNotToday}>
                 {notDue.map((h, i) => (
                   <HabitRow
                     key={h.id}
@@ -201,7 +203,7 @@ export default function TodayScreen() {
               accessibilityRole="button"
             >
               <Sym name="sparkles" size={15} color={p.accent} />
-              <Text style={[FONT.subhead, { color: p.accent, fontWeight: '600' }]}>Find more habits</Text>
+              <Text style={[FONT.subhead, { color: p.accent, fontWeight: '600' }]}>{s.findMore}</Text>
             </Pressable>
           </>
         )}

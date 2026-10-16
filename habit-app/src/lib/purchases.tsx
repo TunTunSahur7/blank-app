@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Platform } from 'react-native';
 import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 
+import { strings } from './i18n';
 import { useHabits } from './store';
 
 /**
@@ -28,7 +29,7 @@ export type Plan = {
   id: PlanId;
   title: string;
   price: string;
-  /** e.g. "$2.50/mo", for comparing plans. */
+  /** Price per month, e.g. "$2.50" (the paywall adds the localized "/mo"). */
   perMonth: string | null;
   /** Free-trial length in days, when the plan has one. */
   trialDays: number | null;
@@ -48,8 +49,8 @@ type ProState = {
 };
 
 const MOCK_PLANS: Plan[] = [
-  { id: 'annual', title: 'Yearly', price: '$29.99', perMonth: '$2.50/mo', trialDays: 7, savings: 50, pkg: null },
-  { id: 'monthly', title: 'Monthly', price: '$4.99', perMonth: '$4.99/mo', trialDays: null, savings: null, pkg: null },
+  { id: 'annual', title: 'Yearly', price: '$29.99', perMonth: '$2.50', trialDays: 7, savings: 50, pkg: null },
+  { id: 'monthly', title: 'Monthly', price: '$4.99', perMonth: '$4.99', trialDays: null, savings: null, pkg: null },
   { id: 'lifetime', title: 'Lifetime', price: '$69.99', perMonth: null, trialDays: null, savings: null, pkg: null },
 ];
 
@@ -89,13 +90,13 @@ function plansFrom(packages: PurchasesPackage[]): Plan[] {
     const savings = monthly ? Math.round((1 - annual.product.price / (monthly.product.price * 12)) * 100) : null;
     plans.push({
       id: 'annual', title: 'Yearly', price: annual.product.priceString,
-      perMonth: annual.product.pricePerMonthString ? `${annual.product.pricePerMonthString}/mo` : null,
+      perMonth: annual.product.pricePerMonthString ?? null,
       trialDays: trialDaysOf(annual), savings: savings && savings > 0 ? savings : null, pkg: annual,
     });
   }
   if (monthly) {
     plans.push({
-      id: 'monthly', title: 'Monthly', price: monthly.product.priceString, perMonth: `${monthly.product.priceString}/mo`,
+      id: 'monthly', title: 'Monthly', price: monthly.product.priceString, perMonth: monthly.product.priceString,
       trialDays: trialDaysOf(monthly), savings: null, pkg: monthly,
     });
   }
@@ -113,10 +114,7 @@ async function scheduleTrialReminder(trialDays: number) {
   when.setHours(10, 0, 0, 0);
   await Notifications.scheduleNotificationAsync({
     identifier: 'trial-ending',
-    content: {
-      title: 'Your Daymark Pro trial ends in 2 days',
-      body: 'Keep it and nothing changes. To cancel, go to Settings › Apple ID › Subscriptions.',
-    },
+    content: { title: strings().trialEndingTitle, body: strings().trialEndingBody },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: when },
   }).catch(() => {});
 }

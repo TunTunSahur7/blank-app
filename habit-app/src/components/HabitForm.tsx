@@ -5,10 +5,12 @@ import { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ALL_DAYS, WEEKDAY_LETTERS, WEEKDAY_SHORT, describeDays } from '../lib/dates';
+import { ALL_DAYS, describeDays } from '../lib/dates';
 import type { HabitInput } from '../lib/db';
 import { ICONS } from '../lib/icons';
+import { formatTime } from '../lib/i18n';
 import { ensurePermission } from '../lib/reminders';
+import { useHabits, useStrings } from '../lib/store';
 import { FONT, HABIT_COLORS, usePalette } from '../lib/theme';
 import { HabitBadge, Section, Sym } from './ui';
 
@@ -31,12 +33,11 @@ function toDate(hhmm: string): Date {
   return d;
 }
 
-function formatTime(hhmm: string): string {
-  return toDate(hhmm).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
 
 export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onDelete }: Props) {
   const p = usePalette();
+  const s = useStrings();
+  const { lang } = useHabits();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(initial.name);
   const [icon, setIcon] = useState(initial.icon);
@@ -56,7 +57,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
     if (!on) return setReminder(null);
     const ok = await ensurePermission();
     if (!ok) {
-      Alert.alert('Notifications are off', 'Turn on notifications for Daymark in Settings to get reminders.');
+      Alert.alert(s.notificationsOff, s.notificationsOffBody);
       return;
     }
     setReminder('09:00');
@@ -69,7 +70,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
       await onSubmit({ name: name.trim(), icon, color, days, reminder });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      Alert.alert("Couldn't save", 'Something went wrong saving this habit. Please try again.');
+      Alert.alert(s.couldntSave, s.couldntSaveHabit);
       setSaving(false);
     }
   };
@@ -78,7 +79,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
     <View style={{ flex: 1, backgroundColor: p.bg }}>
       <View style={[styles.header, { borderBottomColor: p.separator }]}>
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.headerBtn} accessibilityRole="button">
-          <Text style={[FONT.body, { color: p.accent }]}>Cancel</Text>
+          <Text style={[FONT.body, { color: p.accent }]}>{s.cancel}</Text>
         </Pressable>
         <Text style={[FONT.headline, { color: p.text }]}>{title}</Text>
         <Pressable onPress={submit} disabled={!canSave} hitSlop={8} style={[styles.headerBtn, { alignItems: 'flex-end' }]} accessibilityRole="button">
@@ -97,8 +98,8 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
               <Sym name="sparkles" size={18} color={p.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[FONT.headline, { color: p.text }]}>Browse the Habit Library</Text>
-              <Text style={[FONT.footnote, { color: p.muted }]}>50 proven habits and one-tap packs</Text>
+              <Text style={[FONT.headline, { color: p.text }]}>{s.libraryRowTitle}</Text>
+              <Text style={[FONT.footnote, { color: p.muted }]}>{s.libraryRowBody}</Text>
             </View>
             <Sym name="chevron.right" size={13} color={p.muted} weight="bold" />
           </Pressable>
@@ -112,18 +113,18 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Habit name"
+            placeholder={s.habitName}
             placeholderTextColor={p.muted}
             autoFocus={!initial.name}
             maxLength={40}
             returnKeyType="done"
             clearButtonMode="while-editing"
             style={[FONT.body, styles.input, { color: p.text }]}
-            accessibilityLabel="Habit name"
+            accessibilityLabel={s.habitName}
           />
         </View>
 
-        <Section title="Icon">
+        <Section title={s.icon}>
           <View style={styles.iconGrid}>
             {ICONS.map((ic) => {
               const on = ic.key === icon;
@@ -148,7 +149,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
           </View>
         </Section>
 
-        <Section title="Color">
+        <Section title={s.color}>
           <View style={styles.colorRow}>
             {HABIT_COLORS.map((c) => {
               const on = c.hex === color;
@@ -171,9 +172,9 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
           </View>
         </Section>
 
-        <Section title="Repeat" right={<Text style={[FONT.footnote, { color: p.muted }]}>{days ? describeDays(days) : 'Pick a day'}</Text>}>
+        <Section title={s.repeat} right={<Text style={[FONT.footnote, { color: p.muted }]}>{days ? describeDays(days, s) : s.pickADay}</Text>}>
           <View style={styles.dayRow}>
-            {WEEKDAY_LETTERS.map((l, i) => {
+            {s.weekdayLetters.map((l, i) => {
               const on = (days & (1 << i)) !== 0;
               return (
                 <Pressable
@@ -181,7 +182,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
                   onPress={() => toggleDay(i)}
                   style={[styles.dayChip, { backgroundColor: on ? color : p.fill }]}
                   accessibilityRole="checkbox"
-                  accessibilityLabel={WEEKDAY_SHORT[i]}
+                  accessibilityLabel={s.weekdays[i]}
                   accessibilityState={{ checked: on }}
                 >
                   <Text style={[FONT.subhead, { color: on ? '#FFFFFF' : p.muted, fontWeight: '600' }]}>{l}</Text>
@@ -191,25 +192,26 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
           </View>
         </Section>
 
-        <Section title="Reminder" footer="Days off never break a streak. You'll only be reminded on the days you pick.">
+        <Section title={s.reminder} footer={s.reminderFooter}>
           <View style={[styles.line, reminder ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator } : null]}>
-            <Text style={[FONT.body, { color: p.text }]}>Remind me</Text>
-            <Switch value={reminder !== null} onValueChange={setReminderEnabled} accessibilityLabel="Remind me" />
+            <Text style={[FONT.body, { color: p.text }]}>{s.remindMe}</Text>
+            <Switch value={reminder !== null} onValueChange={setReminderEnabled} accessibilityLabel={s.remindMe} />
           </View>
           {reminder && (
             <View style={styles.line}>
-              <Text style={[FONT.body, { color: p.text }]}>Time</Text>
+              <Text style={[FONT.body, { color: p.text }]}>{s.time}</Text>
               {Platform.OS === 'ios' ? (
                 <DateTimePicker
                   mode="time"
                   display="compact"
                   value={toDate(reminder)}
                   minuteInterval={5}
+                  locale={lang === 'sq' ? 'sq_AL' : undefined}
                   onValueChange={(_, d) => setReminder(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}
                 />
               ) : (
                 <View style={[styles.timePill, { backgroundColor: p.fill }]}>
-                  <Text style={[FONT.body, { color: p.text }]}>{formatTime(reminder)}</Text>
+                  <Text style={[FONT.body, { color: p.text }]}>{formatTime(reminder, s)}</Text>
                 </View>
               )}
             </View>
@@ -219,7 +221,7 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
         {onDelete && (
           <Section>
             <Pressable onPress={onDelete} style={styles.deleteRow} accessibilityRole="button">
-              <Text style={[FONT.body, { color: p.danger }]}>Delete Habit</Text>
+              <Text style={[FONT.body, { color: p.danger }]}>{s.deleteHabit}</Text>
             </Pressable>
           </Section>
         )}

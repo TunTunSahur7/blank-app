@@ -1,12 +1,30 @@
 import { addDays, currentStreak, fromKey, isScheduled, type DayKey } from '../lib/dates';
 import type { Habit } from '../lib/db';
+import { strings } from '../lib/i18n';
 import { iconFor } from '../lib/icons';
-import type { TodayWidgetProps } from './TodayWidget';
+import type { TodayWidgetProps, WidgetLabels } from './TodayWidget';
 
 type DayMap = Map<number, ReadonlySet<DayKey>>;
 
 const EMPTY: ReadonlySet<DayKey> = new Set();
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function labels(): WidgetLabels {
+  const s = strings();
+  return {
+    today: s.today,
+    doneToday: s.wDoneToday,
+    allDoneToday: s.wAllDoneToday,
+    allDone: s.wAllDone,
+    nothing: s.wNothing,
+    rest: s.wRest,
+    startStreak: s.wStartStreak,
+    checkOffPro: s.wCheckOffPro,
+    more: s.wMore(0).replace('0', '{n}'),
+    habitsDone: s.wHabitsDone(0, 9).replace('0', '{d}').replace('9', '{t}'),
+    doneOf: s.doneOf(0, 9).replace('0', '{d}').replace('9', '{t}'),
+    streak: s.streak(0).replace('0', '{n}'),
+  };
+}
 
 /** What the widget shows for `day`: that day's scheduled habits, their state and streaks. */
 export function widgetPropsFor(habits: Habit[], done: DayMap, shields: DayMap, day: DayKey, pro: boolean): TodayWidgetProps {
@@ -24,12 +42,13 @@ export function widgetPropsFor(habits: Habit[], done: DayMap, shields: DayMap, d
   });
   return {
     day,
-    weekday: WEEKDAYS[fromKey(day).getDay()],
+    weekday: strings().weekdays[fromKey(day).getDay()],
     // Open habits first, so the widget always shows what's left to do.
     habits: [...items.filter((i) => !i.done), ...items.filter((i) => i.done)],
     topStreak: Math.max(0, ...items.map((i) => i.streak)),
     pro,
     edits: {},
+    l: labels(),
   };
 }
 

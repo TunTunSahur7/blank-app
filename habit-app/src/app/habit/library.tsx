@@ -5,43 +5,45 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HabitBadge, Section, Sym } from '../../components/ui';
-import { CATEGORIES, PACKS, type LibraryHabit, type Pack } from '../../lib/library';
-import { useHabits } from '../../lib/store';
+import { categoriesFor, localize, packsFor, type LibraryHabit, type Pack } from '../../lib/library';
+import { useHabits, useStrings } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
+
+const inputOf = ({ id: _id, why: _why, ...input }: LibraryHabit) => input;
 
 export default function LibraryScreen() {
   const p = usePalette();
+  const s = useStrings();
   const insets = useSafeAreaInsets();
-  const { habits, create } = useHabits();
+  const { habits, create, lang } = useHabits();
   const [category, setCategory] = useState('all');
   const [busy, setBusy] = useState(false);
 
+  const categories = useMemo(() => categoriesFor(lang), [lang]);
+  const packs = useMemo(() => packsFor(lang), [lang]);
   const have = useMemo(() => new Set(habits.map((h) => h.name.toLowerCase())), [habits]);
-  const shown = category === 'all' ? CATEGORIES : CATEGORIES.filter((c) => c.id === category);
+  const shown = category === 'all' ? categories : categories.filter((c) => c.id === category);
+  const has = (h: LibraryHabit) => have.has(h.name.toLowerCase());
 
   const add = async (h: LibraryHabit) => {
-    if (have.has(h.name.toLowerCase())) return;
+    if (has(h)) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const { why: _why, ...input } = h;
-    await create(input).catch(() => Alert.alert("Couldn't add", 'Please try again.'));
+    await create(inputOf(h)).catch(() => Alert.alert(s.couldntAdd, s.tryAgain));
   };
 
   const addPack = async (pack: Pack) => {
-    const missing = pack.habits.filter((h) => !have.has(h.name.toLowerCase()));
+    const missing = pack.habits.map((e) => localize(e, lang)).filter((h) => !has(h));
     if (missing.length === 0) return;
     setBusy(true);
     try {
-      for (const h of missing) {
-        const { why: _why, ...input } = h;
-        await create(input);
-      }
+      for (const h of missing) await create(inputOf(h));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(`${pack.title} added`, `${missing.length} new ${missing.length === 1 ? 'habit is' : 'habits are'} on your Today list.`, [
-        { text: 'Keep Browsing', style: 'cancel' },
-        { text: 'Go to Today', onPress: () => router.dismissTo('/') },
+      Alert.alert(s.packAdded(pack.title[lang]), s.packAddedBody(missing.length), [
+        { text: s.keepBrowsing, style: 'cancel' },
+        { text: s.goToToday, onPress: () => router.dismissTo('/') },
       ]);
     } catch {
-      Alert.alert("Couldn't add", 'Please try again.');
+      Alert.alert(s.couldntAdd, s.tryAgain);
     } finally {
       setBusy(false);
     }
@@ -51,18 +53,19 @@ export default function LibraryScreen() {
     <View style={{ flex: 1, backgroundColor: p.bg }}>
       <View style={[styles.header, { borderBottomColor: p.separator }]}>
         <View style={{ width: 64 }} />
-        <Text style={[FONT.headline, { color: p.text }]}>Habit Library</Text>
+        <Text style={[FONT.headline, { color: p.text }]}>{s.libraryTitle}</Text>
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.headerBtn} accessibilityRole="button">
-          <Text style={[FONT.headline, { color: p.accent }]}>Done</Text>
+          <Text style={[FONT.headline, { color: p.accent }]}>{s.done}</Text>
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32, gap: 22, paddingTop: 16 }}>
         <View style={{ gap: 10 }}>
-          <Text style={[FONT.title3, { color: p.text, paddingHorizontal: 20 }]}>Packs</Text>
+          <Text style={[FONT.title3, { color: p.text, paddingHorizontal: 20 }]}>{s.packs}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packs}>
-            {PACKS.map((pack) => {
-              const missing = pack.habits.filter((h) => !have.has(h.name.toLowerCase())).length;
+            {packs.map((pack) => {
+              const items = pack.habits.map((e) => localize(e, lang));
+              const missing = items.filter((h) => !has(h)).length;
               return (
                 <Pressable
                   key={pack.id}
@@ -70,24 +73,24 @@ export default function LibraryScreen() {
                   disabled={busy || missing === 0}
                   style={({ pressed }) => [styles.pack, { backgroundColor: pack.color, borderColor: p.border, opacity: pressed ? 0.85 : 1 }]}
                   accessibilityRole="button"
-                  accessibilityLabel={`${pack.title}: ${pack.habits.map((h) => h.name).join(', ')}. ${missing ? 'Add pack' : 'Added'}`}
+                  accessibilityLabel={`${pack.title[lang]}: ${items.map((h) => h.name).join(', ')}. ${missing ? s.add : s.added}`}
                 >
                   <View style={styles.packIcons}>
-                    {pack.habits.slice(0, 4).map((h, i) => (
-                      <View key={h.name} style={[styles.packIcon, { marginLeft: i ? -8 : 0 }]}>
+                    {items.slice(0, 4).map((h, i) => (
+                      <View key={h.id} style={[styles.packIcon, { marginLeft: i ? -8 : 0 }]}>
                         <HabitBadge icon={h.icon} color={h.color} size={30} />
                       </View>
                     ))}
                   </View>
                   <View style={{ gap: 2 }}>
-                    <Text style={[FONT.headline, { color: '#FFFFFF' }]}>{pack.title}</Text>
-                    <Text style={[FONT.footnote, { color: 'rgba(255,255,255,0.85)' }]}>{pack.subtitle}</Text>
+                    <Text style={[FONT.headline, { color: '#FFFFFF' }]} numberOfLines={1}>{pack.title[lang]}</Text>
+                    <Text style={[FONT.footnote, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>{pack.subtitle[lang]}</Text>
                   </View>
                   <View style={styles.packFoot}>
-                    <Text style={[FONT.footnote, { color: 'rgba(255,255,255,0.85)' }]}>{pack.habits.length} habits</Text>
+                    <Text style={[FONT.footnote, { color: 'rgba(255,255,255,0.85)' }]}>{s.habitsInPack(items.length)}</Text>
                     <View style={styles.packBtn}>
                       <Sym name={missing ? 'plus' : 'checkmark'} size={12} color={pack.color} weight="bold" />
-                      <Text style={[FONT.footnote, { color: pack.color, fontWeight: '700' }]}>{missing ? 'Add' : 'Added'}</Text>
+                      <Text style={[FONT.footnote, { color: pack.color, fontWeight: '700' }]}>{missing ? s.add : s.added}</Text>
                     </View>
                   </View>
                 </Pressable>
@@ -97,7 +100,7 @@ export default function LibraryScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {[{ id: 'all', title: 'All' }, ...CATEGORIES].map((c) => {
+          {[{ id: 'all', label: s.all }, ...categories.map((c) => ({ id: c.id, label: c.title[lang] }))].map((c) => {
             const on = c.id === category;
             return (
               <Pressable
@@ -110,7 +113,7 @@ export default function LibraryScreen() {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
               >
-                <Text style={[FONT.subhead, { color: on ? p.bg : p.text, fontWeight: '600' }]}>{c.title}</Text>
+                <Text style={[FONT.subhead, { color: on ? p.bg : p.text, fontWeight: '600' }]}>{c.label}</Text>
               </Pressable>
             );
           })}
@@ -118,11 +121,12 @@ export default function LibraryScreen() {
 
         <View style={{ paddingHorizontal: 16, gap: 22 }}>
           {shown.map((c) => (
-            <Section key={c.id} title={c.title}>
-              {c.habits.map((h, i) => {
-                const added = have.has(h.name.toLowerCase());
+            <Section key={c.id} title={c.title[lang]}>
+              {c.habits.map((entry, i) => {
+                const h = localize(entry, lang);
+                const added = has(h);
                 return (
-                  <View key={h.name} style={styles.row}>
+                  <View key={h.id} style={styles.row}>
                     <HabitBadge icon={h.icon} color={h.color} size={36} />
                     <View style={[styles.rowBody, i < c.habits.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
                       <View style={{ flex: 1, gap: 2 }}>
@@ -135,7 +139,7 @@ export default function LibraryScreen() {
                         hitSlop={8}
                         style={[styles.addBtn, { backgroundColor: added ? 'transparent' : `${p.accent}1F` }]}
                         accessibilityRole="button"
-                        accessibilityLabel={added ? `${h.name} added` : `Add ${h.name}`}
+                        accessibilityLabel={added ? `${h.name}: ${s.added}` : `${s.add} ${h.name}`}
                       >
                         <Sym name={added ? 'checkmark.circle.fill' : 'plus'} size={added ? 26 : 15} color={added ? '#34C759' : p.accent} weight="bold" />
                       </Pressable>

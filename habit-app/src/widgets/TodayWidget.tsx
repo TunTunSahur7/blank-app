@@ -17,6 +17,27 @@ export type TodayWidgetProps = {
   pro: boolean;
   /** Check-offs made on the widget itself, habitId -> done; the app applies and clears them. */
   edits: Record<string, boolean>;
+  /** Localized labels; {n}, {d} and {t} are filled in by the widget. */
+  l?: WidgetLabels;
+};
+
+export type WidgetLabels = {
+  today: string;
+  doneToday: string;
+  allDoneToday: string;
+  allDone: string;
+  nothing: string;
+  rest: string;
+  startStreak: string;
+  checkOffPro: string;
+  /** '+{n} more' */
+  more: string;
+  /** '{d} of {t} habits done' */
+  habitsDone: string;
+  /** '{d} of {t} done' */
+  doneOf: string;
+  /** '{n}-day streak' */
+  streak: string;
 };
 
 /**
@@ -31,13 +52,19 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
   const fg = dark ? '#F5F5F7' : '#1D1D1F';
   const muted = dark ? '#A1A1A6' : '#6E6E73';
   const accent = dark ? '#2997FF' : '#0071E3';
+  const l = props.l || {
+    today: 'Today', doneToday: 'done today', allDoneToday: 'all done today', allDone: 'All done today',
+    nothing: 'nothing scheduled', rest: 'Rest', startStreak: 'Start a streak today', checkOffPro: 'Check off from here with Pro',
+    more: '+{n} more', habitsDone: '{d} of {t} habits done', doneOf: '{d} of {t} done', streak: '{n}-day streak',
+  };
   const habits = props.habits || [];
   const total = habits.length;
   const done = habits.filter(function (h) { return h.done; }).length;
   const progress = total ? done / total : 0;
   const family = env.widgetFamily || 'systemSmall';
-  const streakText = props.topStreak > 1 ? props.topStreak + '-day streak' : 'Start a streak today';
+  const streakText = props.topStreak > 1 ? l.streak.replace('{n}', String(props.topStreak)) : l.startStreak;
   const allDone = total > 0 && done === total;
+  const doneOf = l.doneOf.replace('{d}', String(done)).replace('{t}', String(total));
 
   function toggle(id: number) {
     return function () {
@@ -52,7 +79,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
   }
 
   if (family === 'accessoryInline') {
-    return <Text>{total ? done + ' of ' + total + ' habits done' : 'Daymark'}</Text>;
+    return <Text>{total ? l.habitsDone.replace('{d}', String(done)).replace('{t}', String(total)) : 'Daymark'}</Text>;
   }
 
   if (family === 'accessoryCircular') {
@@ -68,7 +95,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
       <VStack alignment="leading" spacing={1}>
         <Text modifiers={[font({ size: 13, weight: 'semibold' })]}>Daymark</Text>
         <Text modifiers={[font({ size: 17, weight: 'bold', design: 'rounded' })]}>
-          {allDone ? 'All done today' : done + ' of ' + total + ' done'}
+          {allDone ? l.allDone : doneOf}
         </Text>
         <Text modifiers={[font({ size: 13 }), lineLimit(1)]}>{streakText}</Text>
       </VStack>
@@ -95,9 +122,9 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
         </HStack>
         <Spacer />
         <Text modifiers={[font({ size: 30, weight: 'bold', design: 'rounded' }), foregroundStyle(fg)]}>
-          {total ? done + '/' + total : 'Rest'}
+          {total ? done + '/' + total : l.rest}
         </Text>
-        <Text modifiers={[font({ size: 13 }), foregroundStyle(muted)]}>{total ? (allDone ? 'all done today' : 'done today') : 'nothing scheduled'}</Text>
+        <Text modifiers={[font({ size: 13 }), foregroundStyle(muted)]}>{total ? (allDone ? l.allDoneToday : l.doneToday) : l.nothing}</Text>
         <HStack spacing={4}>
           <Image systemName="flame.fill" size={12} color="#FF9500" />
           <Text modifiers={[font({ size: 13, weight: 'semibold' }), foregroundStyle(fg), lineLimit(1)]}>{streakText}</Text>
@@ -134,10 +161,10 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
         );
       })}
       {habits.length > rows.length ? (
-        <Text modifiers={[font({ size: 12 }), foregroundStyle(muted)]}>{'+' + (habits.length - rows.length) + ' more'}</Text>
+        <Text modifiers={[font({ size: 12 }), foregroundStyle(muted)]}>{l.more.replace('{n}', String(habits.length - rows.length))}</Text>
       ) : null}
       {props.pro ? null : (
-        <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(accent)]}>Check off from here with Pro</Text>
+        <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(accent)]}>{l.checkOffPro}</Text>
       )}
     </VStack>
   );
@@ -150,8 +177,8 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
         <HStack spacing={10}>
           {ring}
           <VStack alignment="leading" spacing={0}>
-            <Text modifiers={[font({ size: 20, weight: 'bold' }), foregroundStyle(fg)]}>Today</Text>
-            <Text modifiers={[font({ size: 13 }), foregroundStyle(muted)]}>{done + ' of ' + total + ' done · ' + streakText}</Text>
+            <Text modifiers={[font({ size: 20, weight: 'bold' }), foregroundStyle(fg)]}>{l.today}</Text>
+            <Text modifiers={[font({ size: 13 }), foregroundStyle(muted)]}>{doneOf + ' · ' + streakText}</Text>
           </VStack>
           <Spacer />
         </HStack>

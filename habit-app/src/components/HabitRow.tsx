@@ -5,6 +5,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { addDays, currentStreak, describeDays, isScheduled, type DayKey } from '../lib/dates';
 import type { Habit } from '../lib/db';
+import { useStrings } from '../lib/store';
 import { FONT, usePalette } from '../lib/theme';
 import { HabitBadge, Sym } from './ui';
 
@@ -20,6 +21,7 @@ type Props = {
 
 function HabitRowBase({ habit, done, shields, today, last, dimmed, onToggle }: Props) {
   const p = usePalette();
+  const s = useStrings();
   const [scale] = useState(() => new Animated.Value(1));
   const doneToday = done.has(today);
   const streak = currentStreak(done, habit.days, today, shields);
@@ -34,14 +36,14 @@ function HabitRowBase({ habit, done, shields, today, last, dimmed, onToggle }: P
     onToggle();
   };
 
-  const sub = streak >= 2 ? `${streak}-day streak` : doneToday ? 'Done today' : describeDays(habit.days);
+  const sub = streak >= 2 ? s.streak(streak) : doneToday ? s.doneToday : describeDays(habit.days, s);
 
   return (
     <Pressable
       onPress={() => router.push(`/habit/${habit.id}`)}
       style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fill : 'transparent', opacity: dimmed ? 0.55 : 1 }]}
       accessibilityRole="button"
-      accessibilityLabel={`${habit.name}. ${sub}. Opens details.`}
+      accessibilityLabel={`${habit.name}. ${sub}. ${s.opensDetails}`}
     >
       <HabitBadge icon={habit.icon} color={habit.color} />
       <View style={[styles.body, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
@@ -82,7 +84,7 @@ function HabitRowBase({ habit, done, shields, today, last, dimmed, onToggle }: P
           style={styles.checkHit}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: doneToday }}
-          accessibilityLabel={`${habit.name} done today`}
+          accessibilityLabel={s.doneTodayLabel(habit.name)}
         >
           <Animated.View
             style={[

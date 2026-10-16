@@ -38,6 +38,13 @@ src/lib/
 store/                    App Store listing, screenshots, launch plan
 ```
 
+## Languages
+
+English and Albanian (`src/lib/i18n.ts`; every Albanian string is type-checked against English). iOS has no
+Albanian system language, so the app chooses Albanian for phones in Albania or Kosovo and offers a switch in
+onboarding and Settings › Language. The app name lives in one constant, `APP_NAME`. Albanian market plan:
+`store/LISTING-sq.md`.
+
 ## Develop
 
 ```bash

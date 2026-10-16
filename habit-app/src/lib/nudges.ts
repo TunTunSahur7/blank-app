@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 
 import { addDays, currentStreak, fromKey, isScheduled, type DayKey } from './dates';
 import type { Habit } from './db';
+import { strings } from './i18n';
 
 const PREFIX = 'nudge-';
 const DAYS_AHEAD = 7;
@@ -44,8 +45,9 @@ export async function planNudges({ enabled, time, habits, done, shields, today }
     at.setHours(hour, minute, 0, 0);
     if (at <= now) continue;
 
-    let title = 'Close your day';
-    let body = `${due.length === 1 ? 'One habit is' : `${due.length} habits are`} waiting. Keep your streaks going.`;
+    const s = strings();
+    let title = s.nudgeClose;
+    let body = s.nudgeWaiting(due.length);
 
     if (i === 0) {
       const open = due.filter((h) => !done.get(h.id)?.has(day));
@@ -54,9 +56,9 @@ export async function planNudges({ enabled, time, habits, done, shields, today }
         0,
         ...open.map((h) => currentStreak(done.get(h.id) ?? new Set(), h.days, day, shields.get(h.id))),
       );
-      title = atStake >= 2 ? `Keep your ${atStake}-day streak` : 'Close your day';
+      title = atStake >= 2 ? s.nudgeKeep(atStake) : s.nudgeClose;
       const names = open.slice(0, 3).map((h) => h.name).join(', ');
-      body = `${open.length === 1 ? '1 habit' : `${open.length} habits`} left today: ${names}${open.length > 3 ? '…' : '.'}`;
+      body = s.nudgeLeft(open.length, names) + (open.length > 3 ? '…' : '.');
     }
 
     await Notifications.scheduleNotificationAsync({

@@ -6,6 +6,8 @@ import { AppState } from 'react-native';
 import { currentStreak, todayKey, type DayKey } from './dates';
 import * as db from './db';
 import type { Checkin, Habit, HabitInput, Shield, Snapshot } from './db';
+import { setLanguage, strings, type Lang, type Strings } from './i18n';
+import { detectLanguage } from './locale';
 import { DEFAULT_NUDGE_TIME, planNudges } from './nudges';
 import { cancelReminders, resyncAll, syncReminders } from './reminders';
 
@@ -26,6 +28,7 @@ type Store = {
   shields: DayMap;
   shieldList: Shield[];
   settings: Record<string, string>;
+  lang: Lang;
   onboarded: boolean;
   nudgeEnabled: boolean;
   nudgeTime: string;
@@ -106,6 +109,11 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, []);
 
+  const detected = useMemo(() => detectLanguage(), []);
+  const lang: Lang = settings.lang === 'sq' || settings.lang === 'en' ? settings.lang : detected;
+  // Non-React code (notifications, widget data) reads the language from the i18n module.
+  setLanguage(lang);
+
   const nudgeEnabled = settings.nudge_enabled !== '0';
   const nudgeTime = settings.nudge_time ?? DEFAULT_NUDGE_TIME;
 
@@ -116,7 +124,14 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       planNudges({ enabled: nudgeEnabled, time: nudgeTime, habits, done, shields, today }).catch(() => {});
     }, 600);
     return () => clearTimeout(t);
-  }, [ready, nudgeEnabled, nudgeTime, habits, done, shields, today]);
+  }, [ready, nudgeEnabled, nudgeTime, habits, done, shields, today, lang]);
+
+  const reminderLang = useRef<Lang | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    if (reminderLang.current && reminderLang.current !== lang) resyncAll(habits).catch(() => {});
+    reminderLang.current = lang;
+  }, [ready, lang, habits]);
 
   const setSetting = useCallback(
     async (key: string, value: string) => {
@@ -250,11 +265,12 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       ready, today, habits, done, shields, shieldList, settings,
+      lang,
       onboarded: settings.onboarded === '1',
       nudgeEnabled, nudgeTime, celebration, dismissCelebration,
       allCheckins, toggle, setCheckins, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore,
     }),
-    [ready, today, habits, done, shields, shieldList, settings, nudgeEnabled, nudgeTime, celebration, dismissCelebration,
+    [ready, today, habits, done, shields, shieldList, settings, lang, nudgeEnabled, nudgeTime, celebration, dismissCelebration,
       allCheckins, toggle, setCheckins, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore],
   );
 
@@ -265,4 +281,9 @@ export function useHabits(): Store {
   const s = useContext(StoreContext);
   if (!s) throw new Error('useHabits must be used inside HabitsProvider');
   return s;
+}
+
+/** The current language's strings; re-renders when the language changes. */
+export function useStrings(): Strings {
+  return strings(useHabits().lang);
 }

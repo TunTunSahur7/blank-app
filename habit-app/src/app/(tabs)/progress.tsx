@@ -5,16 +5,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HabitBadge, Section, Sym } from '../../components/ui';
 import {
-  WEEKDAY_LETTERS, WEEKDAY_SHORT, addDays, bestStreak, completionRate, currentStreak, isScheduled, weekdayOf, type DayKey,
+  addDays, bestStreak, completionRate, currentStreak, isScheduled, weekdayOf, type DayKey,
 } from '../../lib/dates';
 import { usePro } from '../../lib/purchases';
-import { useHabits } from '../../lib/store';
+import { useHabits, useStrings } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
 
 const EMPTY: ReadonlySet<DayKey> = new Set();
 
 export default function ProgressScreen() {
   const p = usePalette();
+  const t = useStrings();
   const insets = useSafeAreaInsets();
   const { isPro } = usePro();
   const { habits, done, shields, today } = useHabits();
@@ -34,7 +35,7 @@ export default function ProgressScreen() {
       const day = addDays(sunday, i);
       const due = active(day);
       const hit = due.filter((h) => done.get(h.id)?.has(day)).length;
-      return { day, letter: WEEKDAY_LETTERS[i], due: due.length, hit, future: day > today };
+      return { day, letter: t.weekdayLetters[i], due: due.length, hit, future: day > today };
     });
     const weekDue = week.filter((d) => !d.future).reduce((a, d) => a + d.due, 0);
     const weekHit = week.reduce((a, d) => a + d.hit, 0);
@@ -74,24 +75,24 @@ export default function ProgressScreen() {
       topBest: Math.max(0, ...streaks.map((s) => s.best)),
       strongest,
     };
-  }, [habits, done, shields, today]);
+  }, [habits, done, shields, today, t]);
 
   const tiles = [
-    { label: 'Longest active streak', value: String(stats.topCurrent), unit: 'days' },
-    { label: 'Perfect days (30d)', value: String(stats.perfect), unit: '' },
-    { label: 'Total check-ins', value: String(stats.total), unit: '' },
-    { label: 'Best streak ever', value: String(stats.topBest), unit: 'days' },
+    { label: t.longestActive, value: String(stats.topCurrent), unit: t.days(2) },
+    { label: t.perfectDays, value: String(stats.perfect), unit: '' },
+    { label: t.totalCheckins, value: String(stats.total), unit: '' },
+    { label: t.bestEver, value: String(stats.topBest), unit: t.days(2) },
   ];
 
   return (
     <ScrollView style={{ backgroundColor: p.bg }} contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 100 }]}>
-      <Text style={[FONT.largeTitle, { color: p.text, paddingHorizontal: 4, marginTop: 18 }]}>Progress</Text>
+      <Text style={[FONT.largeTitle, { color: p.text, paddingHorizontal: 4, marginTop: 18 }]}>{t.progressTitle}</Text>
 
       <View style={[styles.card, { backgroundColor: p.card }, p.shadow]}>
         <View style={styles.cardHead}>
-          <Text style={[FONT.headline, { color: p.text }]}>This week</Text>
+          <Text style={[FONT.headline, { color: p.text }]}>{t.thisWeek}</Text>
           <Text style={[FONT.footnote, { color: p.muted }]}>
-            {stats.weekHit} of {stats.weekDue} check-ins
+            {t.checkinsOf(stats.weekHit, stats.weekDue)}
           </Text>
         </View>
         <View style={styles.chart}>
@@ -99,7 +100,7 @@ export default function ProgressScreen() {
             const ratio = d.due ? d.hit / d.due : 0;
             const isToday = d.day === today;
             return (
-              <View key={d.day} style={styles.barCol} accessibilityLabel={`${WEEKDAY_SHORT[weekdayOf(d.day)]}: ${d.hit} of ${d.due}`}>
+              <View key={d.day} style={styles.barCol} accessibilityLabel={`${t.weekdays[weekdayOf(d.day)]}: ${d.hit} / ${d.due}`}>
                 <View style={[styles.barTrack, { backgroundColor: p.fill, opacity: d.future ? 0.5 : 1 }]}>
                   <View style={[styles.barFill, { height: `${Math.max(ratio * 100, ratio > 0 ? 8 : 0)}%`, backgroundColor: p.accent }]} />
                 </View>
@@ -130,12 +131,11 @@ export default function ProgressScreen() {
                 <Sym name="star.fill" size={16} color="#FFF" />
               </View>
               <Text style={[FONT.subhead, { color: p.text, flex: 1 }]}>
-                You’re most consistent on <Text style={{ fontWeight: '700' }}>{WEEKDAY_SHORT[stats.strongest.i]}s</Text>, at{' '}
-                {Math.round(stats.strongest.r * 100)}% over the last 8 weeks.
+                {t.strongestDay(t.weekdays[stats.strongest.i], Math.round(stats.strongest.r * 100))}
               </Text>
             </View>
           )}
-          <Section title="Last 30 days">
+          <Section title={t.last30}>
             {stats.streaks.map((s, i) => (
               <Pressable
                 key={s.habit.id}
@@ -161,10 +161,10 @@ export default function ProgressScreen() {
           onPress={() => router.push({ pathname: '/paywall', params: { from: 'insights' } })}
           style={[styles.card, { backgroundColor: p.card, gap: 14 }, p.shadow]}
           accessibilityRole="button"
-          accessibilityLabel="Unlock Insights with Daymark Pro"
+          accessibilityLabel={`${t.unlockInsights}. ${t.unlockWithPro}`}
         >
           <View style={styles.cardHead}>
-            <Text style={[FONT.headline, { color: p.text }]}>Insights</Text>
+            <Text style={[FONT.headline, { color: p.text }]}>{t.insights}</Text>
             <View style={[styles.proPill, { backgroundColor: `${p.accent}1F` }]}>
               <Sym name="lock.fill" size={11} color={p.accent} />
               <Text style={[FONT.caption, { color: p.accent, fontWeight: '700' }]}>PRO</Text>
@@ -179,9 +179,9 @@ export default function ProgressScreen() {
             </View>
           ))}
           <Text style={[FONT.subhead, { color: p.muted }]}>
-            See each habit’s 30-day rate and the day of the week you’re strongest.
+            {t.insightsTeaser}
           </Text>
-          <Text style={[FONT.headline, { color: p.accent }]}>Unlock Insights</Text>
+          <Text style={[FONT.headline, { color: p.accent }]}>{t.unlockInsights}</Text>
         </Pressable>
       )}
     </ScrollView>

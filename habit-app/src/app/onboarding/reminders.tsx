@@ -5,13 +5,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton, Sym } from '../../components/ui';
 import { ensurePermission } from '../../lib/reminders';
-import { useHabits } from '../../lib/store';
+import { formatTime } from '../../lib/i18n';
+import { useHabits, useStrings } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
 
 export default function StreakGuardScreen() {
   const p = usePalette();
   const insets = useSafeAreaInsets();
-  const { setSetting } = useHabits();
+  const s = useStrings();
+  const { setSetting, lang } = useHabits();
   const [busy, setBusy] = useState(false);
 
   const finish = async (enable: boolean) => {
@@ -19,6 +21,8 @@ export default function StreakGuardScreen() {
     try {
       const granted = enable ? await ensurePermission() : false;
       await setSetting('nudge_enabled', granted ? '1' : '0');
+      // Keep the language chosen (or detected) during onboarding.
+      await setSetting('lang', lang);
       await setSetting('onboarded', '1');
     } finally {
       setBusy(false);
@@ -32,26 +36,25 @@ export default function StreakGuardScreen() {
         <View style={[styles.bell, { backgroundColor: `${p.accent}1F` }]}>
           <Sym name="bell.badge.fill" size={46} color={p.accent} weight="regular" />
         </View>
-        <Text style={[styles.title, { color: p.text }]}>Never break a streak by accident</Text>
+        <Text style={[styles.title, { color: p.text }]}>{s.guardTitle}</Text>
         <Text style={[FONT.callout, { color: p.muted, textAlign: 'center', lineHeight: 22 }]}>
-          Streak Guard sends one gentle nudge in the evening, and only when something is still open. Finish your
-          day and it stays quiet.
+          {s.guardBody}
         </Text>
         <View style={[styles.sample, { backgroundColor: p.scheme === 'dark' ? '#1C1C1E' : '#F2F2F7' }]}>
           <View style={styles.sampleIcon}>
             <Sym name="checkmark" size={14} color="#FFFFFF" weight="heavy" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[FONT.subhead, { color: p.text, fontWeight: '600' }]}>Keep your 12-day streak</Text>
-            <Text style={[FONT.footnote, { color: p.muted }]}>1 habit left today: Read 10 pages.</Text>
+            <Text style={[FONT.subhead, { color: p.text, fontWeight: '600' }]}>{s.guardSampleTitle}</Text>
+            <Text style={[FONT.footnote, { color: p.muted }]}>{s.guardSampleBody}</Text>
           </View>
-          <Text style={[FONT.caption, { color: p.muted }]}>8:00 PM</Text>
+          <Text style={[FONT.caption, { color: p.muted }]}>{formatTime('20:00', s)}</Text>
         </View>
       </View>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 8 }]}>
-        <PrimaryButton title="Turn On Streak Guard" onPress={() => finish(true)} loading={busy} />
+        <PrimaryButton title={s.guardTurnOn} onPress={() => finish(true)} loading={busy} />
         <Pressable onPress={() => finish(false)} disabled={busy} style={styles.skip} accessibilityRole="button">
-          <Text style={[FONT.body, { color: p.accent }]}>Not Now</Text>
+          <Text style={[FONT.body, { color: p.accent }]}>{s.notNow}</Text>
         </Pressable>
       </View>
     </View>
