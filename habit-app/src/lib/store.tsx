@@ -33,6 +33,8 @@ type Store = {
   dismissCelebration: () => void;
   allCheckins: () => Checkin[];
   toggle: (habitId: number, day: DayKey) => Promise<void>;
+  /** Sets a check-in to an exact state (used to apply widget taps). */
+  setCheckins: (changes: { habitId: number; day: DayKey; done: boolean }[]) => Promise<void>;
   create: (input: HabitInput) => Promise<number>;
   update: (id: number, input: HabitInput) => Promise<void>;
   remove: (id: number) => Promise<void>;
@@ -155,6 +157,23 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
     [sql, reload, setDone, habits, shields, setSetting],
   );
 
+  const setCheckins = useCallback(
+    async (changes: { habitId: number; day: DayKey; done: boolean }[]) => {
+      if (changes.length === 0) return;
+      const next = new Map(doneRef.current);
+      for (const c of changes) {
+        if (!next.has(c.habitId)) continue;
+        const days = new Set(next.get(c.habitId));
+        if (c.done) days.add(c.day);
+        else days.delete(c.day);
+        next.set(c.habitId, days);
+        await db.setCheckin(sql, c.habitId, c.day, c.done);
+      }
+      setDone(next);
+    },
+    [sql, setDone],
+  );
+
   const dismissCelebration = useCallback(() => {
     const c = celebration;
     setCelebration(null);
@@ -233,10 +252,10 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
       ready, today, habits, done, shields, shieldList, settings,
       onboarded: settings.onboarded === '1',
       nudgeEnabled, nudgeTime, celebration, dismissCelebration,
-      allCheckins, toggle, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore,
+      allCheckins, toggle, setCheckins, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore,
     }),
     [ready, today, habits, done, shields, shieldList, settings, nudgeEnabled, nudgeTime, celebration, dismissCelebration,
-      allCheckins, toggle, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore],
+      allCheckins, toggle, setCheckins, create, update, remove, applyShield, shieldsUsedThisMonth, setSetting, restore],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

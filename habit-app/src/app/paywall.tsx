@@ -12,13 +12,13 @@ import { SHIELDS_PER_MONTH, usePro, type Plan } from '../lib/purchases';
 import { useHabits } from '../lib/store';
 import { FONT, usePalette } from '../lib/theme';
 
-type From = 'onboarding' | 'shield' | 'history' | 'insights' | 'settings';
+type From = 'onboarding' | 'shield' | 'history' | 'insights' | 'settings' | 'widget';
 
 const BENEFITS: { icon: SFSymbol; color: string; title: string; body: string }[] = [
   { icon: 'shield.fill', color: '#007AFF', title: 'Streak Shields', body: `Miss a day without losing your streak. ${SHIELDS_PER_MONTH} every month.` },
+  { icon: 'apps.iphone', color: '#FF2D55', title: 'Interactive widgets', body: 'Check off habits right from your Home Screen.' },
   { icon: 'chart.bar.fill', color: '#34C759', title: 'Insights', body: 'Best streaks, 30-day rates and your strongest days.' },
   { icon: 'calendar', color: '#FF9500', title: 'Your full history', body: 'Every day you’ve tracked, not just the last 5 weeks.' },
-  { icon: 'sparkles', color: '#AF52DE', title: 'Every future Pro feature', body: 'Included as they ship, at no extra cost.' },
 ];
 
 function headline(from: From, streak: number | null): { title: string; subtitle: string } {
@@ -28,6 +28,8 @@ function headline(from: From, streak: number | null): { title: string; subtitle:
         title: streak ? `Save your ${streak}-day streak` : 'Save your streak',
         subtitle: 'A Streak Shield covers the day you missed, so your streak lives on.',
       };
+    case 'widget':
+      return { title: 'Check off from your Home Screen', subtitle: 'Tap a habit on the widget and it’s done. No need to open the app.' };
     case 'history':
       return { title: 'See every day you’ve kept', subtitle: 'Unlock your full history and the patterns inside it.' };
     case 'insights':

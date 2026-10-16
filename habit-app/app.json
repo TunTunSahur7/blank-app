@@ -47,6 +47,30 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "app.daymark.habits.widgets",
+          "groupIdentifier": "group.app.daymark.habits",
+          "widgets": [
+            {
+              "name": "DaymarkToday",
+              "displayName": "Today",
+              "description": "See today’s habits and check them off.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge",
+                  "accessoryCircular",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ]
+              }
+            }
+          ]
+        }
       ]
     ],
     "experiments": {

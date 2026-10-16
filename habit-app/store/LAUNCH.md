@@ -32,6 +32,8 @@ No one can guarantee a top-chart spot. What moves rankings is **download velocit
   - "I lost a 200-day streak because I got sick. So I built an app that forgives you."
   - "Every habit app limits you to 3 habits. Mine doesn't."
   - Screen recording of the 7-day celebration, with sound on.
+  - Pack videos ride existing trends: "I tried Monk Mode for 30 days", "Dopamine detox day 1", "That-girl morning routine". Each one ends on adding the pack in one tap.
+  - Widget aesthetic: a clean Home Screen setup with the Daymark widget. Home Screen setup videos are their own genre.
 - Reply to every review and every comment in the first two weeks.
 
 ## 5. After launch
@@ -39,7 +41,7 @@ No one can guarantee a top-chart spot. What moves rankings is **download velocit
 - **Promotional text** can change anytime without review: rotate seasonal hooks ("New Year, new streak").
 - **Seasonality:** January is the biggest month for habit apps by far. Spend your marketing there: ship an update and run Apple Search Ads in late December.
 - **Apple Search Ads:** start with exact-match "habit tracker", "streaks", "habit app" at a capped daily budget. Watch cost per trial start, not cost per install.
-- **Next features that sell Pro:** Home Screen widgets and Lock Screen widgets (the most-requested feature in this category), then iCloud sync across devices.
+- **Next features that sell Pro:** iCloud sync across devices, an Apple Watch app, and new habit packs timed to trends (a "New Year Reset" pack in late December).
 
 ## 6. Numbers to watch (RevenueCat dashboard)
 

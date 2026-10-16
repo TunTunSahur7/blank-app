@@ -12,8 +12,8 @@ It fixes the most common complaints in competitors' App Store reviews, and makes
 | Surprise trial charges | Trial timeline on the paywall + reminder 2 days before billing |
 | Accounts, tracking | No account, no analytics; nothing leaves the phone |
 
-**Free:** unlimited habits, streaks, reminders, Streak Guard evening nudge, milestone celebrations, 5 weeks of history, backups.
-**Pro:** Streak Shields (3/month), Insights, full history. Yearly with a 7-day trial, monthly, or lifetime.
+**Free:** unlimited habits, the Habit Library (50 habits, 7 packs), small Home Screen and Lock Screen widgets, streaks, reminders, Streak Guard, milestone celebrations, 5 weeks of history, backups.
+**Pro:** interactive medium/large widgets (check off from the Home Screen), Streak Shields (3/month), Insights, full history. Yearly with a 7-day trial, monthly, or lifetime.
 
 ## Project layout
 
@@ -24,6 +24,8 @@ src/app/                  screens (Expo Router)
   paywall.tsx             Daymark Pro
   habit/[id].tsx          stats + history grid
   habit/new.tsx, habit/edit/[id].tsx
+  habit/library.tsx       Habit Library and packs
+src/widgets/              Home/Lock Screen widget (TodayWidget), its data (props), app↔widget sync
 src/components/           ui kit (icons, rings, logo, lists), HabitRow, Heatmap, HabitForm, Celebration
 src/lib/
   dates.ts                streaks, Streak Shields, rescue logic (unit-tested)
@@ -31,6 +33,7 @@ src/lib/
   store.tsx               app state, milestones, review prompt
   purchases.tsx           RevenueCat (stand-in store in development)
   nudges.ts               Streak Guard notifications
+  library.ts              curated habits and packs
   reminders.ts, backup.ts, icons.ts, theme.ts, config.ts
 store/                    App Store listing, screenshots, launch plan
 ```
@@ -47,6 +50,16 @@ npm run lint
 The app uses native modules (in-app purchases, SF Symbols, native tabs), so run it in a **development build**, not Expo Go:
 `npx eas-cli@latest build -p ios --profile preview`, then install it on your iPhone from the link.
 Without a RevenueCat key, development builds use a stand-in store so you can try the paywall without paying.
+
+## Widgets
+
+Built with `expo-widgets`: the layout in `src/widgets/TodayWidget.tsx` is SwiftUI (via `@expo/ui`) and runs inside the widget.
+Families: small, medium, large, and Lock Screen circular, rectangular and inline. Medium and large rows are buttons for Pro
+members: a tap updates the widget immediately and is applied to the app's data the next time it opens.
+
+EAS Build creates the widget extension (`app.daymark.habits.widgets`) and the App Group
+`group.app.daymark.habits` for you. Widgets need a development or TestFlight build; they don't run in Expo Go.
+The layout function may only use its arguments and the imported SwiftUI components (see the comment in the file).
 
 ## Set up subscriptions (once)
 

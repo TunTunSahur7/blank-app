@@ -108,8 +108,11 @@ export default function TodayScreen() {
             <Text style={[FONT.title3, { color: p.text, textAlign: 'center' }]}>Start with one small habit</Text>
             <Text style={[FONT.subhead, { color: p.muted, textAlign: 'center' }]}>Unlimited habits, free. Everything stays on your iPhone.</Text>
             <View style={{ alignSelf: 'stretch', marginTop: 6 }}>
-              <PrimaryButton title="Add a Habit" onPress={() => router.push('/habit/new')} />
+              <PrimaryButton title="Browse the Habit Library" onPress={() => router.push('/habit/library')} />
             </View>
+            <Pressable onPress={() => router.push('/habit/new')} hitSlop={8} accessibilityRole="button">
+              <Text style={[FONT.headline, { color: p.accent }]}>Create Your Own</Text>
+            </Pressable>
           </View>
         ) : (
           <>
@@ -192,6 +195,14 @@ export default function TodayScreen() {
                 ))}
               </Section>
             )}
+            <Pressable
+              onPress={() => router.push('/habit/library')}
+              style={({ pressed }) => [styles.more, { opacity: pressed ? 0.6 : 1 }]}
+              accessibilityRole="button"
+            >
+              <Sym name="sparkles" size={15} color={p.accent} />
+              <Text style={[FONT.subhead, { color: p.accent, fontWeight: '600' }]}>Find more habits</Text>
+            </Pressable>
           </>
         )}
       </ScrollView>
@@ -213,4 +224,5 @@ const styles = StyleSheet.create({
   rescueActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
   rescueBtn: { paddingHorizontal: 14, height: 36, borderRadius: 18, justifyContent: 'center' },
   rescueSkip: { paddingHorizontal: 10, height: 36, justifyContent: 'center' },
+  more: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44 },
 });

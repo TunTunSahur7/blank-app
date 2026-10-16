@@ -7,6 +7,7 @@ import { DATABASE_NAME, migrate } from '../lib/db';
 import { ProProvider } from '../lib/purchases';
 import { HabitsProvider } from '../lib/store';
 import { usePalette } from '../lib/theme';
+import { WidgetSync } from '../widgets/WidgetSync';
 
 export default function RootLayout() {
   const scheme = useColorScheme();
@@ -23,12 +24,14 @@ export default function RootLayout() {
         <ProProvider>
           <ThemeProvider value={theme}>
             <StatusBar style="auto" />
+            <WidgetSync />
             <Stack screenOptions={{ headerShadowVisible: false, headerBackButtonDisplayMode: 'minimal' }}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
               <Stack.Screen name="paywall" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="habit/new" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="habit/edit/[id]" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="habit/library" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="habit/[id]" options={{ title: '', headerTransparent: false }} />
             </Stack>
           </ThemeProvider>

@@ -5,23 +5,12 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HabitBadge, PrimaryButton, Section, Sym } from '../../components/ui';
-import { ALL_DAYS } from '../../lib/dates';
 import type { HabitInput } from '../../lib/db';
+import { POPULAR } from '../../lib/library';
 import { useHabits } from '../../lib/store';
 import { FONT, usePalette } from '../../lib/theme';
 
-const WEEKDAYS = 0b0111110;
-
-const STARTERS: HabitInput[] = [
-  { name: 'Drink water', icon: 'water', color: '#007AFF', days: ALL_DAYS, reminder: null },
-  { name: 'Read 10 pages', icon: 'read', color: '#FF9500', days: ALL_DAYS, reminder: null },
-  { name: 'Move 30 minutes', icon: 'run', color: '#34C759', days: ALL_DAYS, reminder: null },
-  { name: 'Meditate', icon: 'meditate', color: '#5856D6', days: ALL_DAYS, reminder: null },
-  { name: 'Sleep by 11', icon: 'sleep', color: '#AF52DE', days: ALL_DAYS, reminder: null },
-  { name: 'Journal', icon: 'journal', color: '#30B0C7', days: ALL_DAYS, reminder: null },
-  { name: 'Strength training', icon: 'strength', color: '#FF3B30', days: 0b0101010, reminder: null },
-  { name: 'Less phone time', icon: 'nophone', color: '#FF2D55', days: WEEKDAYS, reminder: null },
-];
+const STARTERS: HabitInput[] = POPULAR.map(({ why: _why, ...input }) => input);
 
 export default function PickHabitsScreen() {
   const p = usePalette();

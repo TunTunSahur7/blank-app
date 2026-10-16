@@ -10,7 +10,7 @@ import type { HabitInput } from '../lib/db';
 import { ICONS } from '../lib/icons';
 import { ensurePermission } from '../lib/reminders';
 import { FONT, HABIT_COLORS, usePalette } from '../lib/theme';
-import { HabitBadge, Section } from './ui';
+import { HabitBadge, Section, Sym } from './ui';
 
 type Props = {
   title: string;
@@ -87,6 +87,23 @@ export function HabitForm({ title, initial = DEFAULT, submitLabel, onSubmit, onD
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled">
+        {!onDelete && (
+          <Pressable
+            onPress={() => router.push('/habit/library')}
+            style={({ pressed }) => [styles.libraryRow, { backgroundColor: p.card, opacity: pressed ? 0.8 : 1 }, p.shadow]}
+            accessibilityRole="button"
+          >
+            <View style={[styles.libraryIcon, { backgroundColor: `${p.accent}1F` }]}>
+              <Sym name="sparkles" size={18} color={p.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[FONT.headline, { color: p.text }]}>Browse the Habit Library</Text>
+              <Text style={[FONT.footnote, { color: p.muted }]}>50 proven habits and one-tap packs</Text>
+            </View>
+            <Sym name="chevron.right" size={13} color={p.muted} weight="bold" />
+          </Pressable>
+        )}
+
         <View style={styles.preview}>
           <HabitBadge icon={icon} color={color} size={72} />
         </View>
@@ -216,6 +233,8 @@ const styles = StyleSheet.create({
   headerBtn: { minWidth: 64, height: 44, justifyContent: 'center' },
   content: { padding: 16, gap: 22 },
   preview: { alignItems: 'center', paddingTop: 4 },
+  libraryRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16 },
+  libraryIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   field: { borderRadius: 16 },
   input: { paddingHorizontal: 16, height: 52 },
   iconGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 10, rowGap: 6 },

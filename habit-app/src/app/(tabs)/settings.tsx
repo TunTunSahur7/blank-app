@@ -125,7 +125,7 @@ export default function SettingsScreen() {
           <Text style={[FONT.footnote, { color: p.muted }]}>
             {isPro
               ? `Thank you for your support. ${shieldsLeft} of ${SHIELDS_PER_MONTH} Streak Shields left this month.`
-              : 'Streak Shields, Insights and your full history. Free for 7 days.'}
+              : 'Streak Shields, interactive widgets, Insights and your full history. Free for 7 days.'}
           </Text>
         </View>
       </Pressable>
@@ -159,6 +159,17 @@ export default function SettingsScreen() {
       </Section>
 
       <Section title="Support">
+        <ListRow
+          label="Add a Widget"
+          icon="apps.iphone"
+          iconColor="#007AFF"
+          onPress={() =>
+            Alert.alert(
+              'Add a Daymark widget',
+              'Touch and hold an empty spot on your Home Screen, tap Edit › Add Widget, then search for Daymark. For your Lock Screen, touch and hold it and tap Customize.',
+            )
+          }
+        />
         <ListRow label="Rate Daymark" icon="star.fill" iconColor="#FF9500" onPress={rate} />
         <ListRow
           label="Share Daymark"
