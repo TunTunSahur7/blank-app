@@ -9,6 +9,8 @@ import {
   currentStreak,
   describeDays,
   isValidKey,
+  previousScheduled,
+  rescuable,
   weekdayOf,
 } from './dates';
 
@@ -71,4 +73,28 @@ test('isValidKey rejects impossible dates', () => {
   assert.equal(isValidKey('2026-10-16'), true);
   assert.equal(isValidKey('2026-02-30'), false);
   assert.equal(isValidKey('16/10/2026'), false);
+});
+
+test('a shield keeps the streak alive across a missed day', () => {
+  const done = set('2026-10-12', '2026-10-13', '2026-10-15', TODAY);
+  assert.equal(currentStreak(done, ALL_DAYS, TODAY), 2);
+  assert.equal(currentStreak(done, ALL_DAYS, TODAY, set('2026-10-14')), 4);
+  assert.equal(bestStreak(done, ALL_DAYS, TODAY, set('2026-10-14')), 4);
+});
+
+test('rescuable finds a streak that broke yesterday', () => {
+  const done = set('2026-10-11', '2026-10-12', '2026-10-13', '2026-10-14');
+  assert.deepEqual(rescuable(done, ALL_DAYS, TODAY), { day: '2026-10-15', streak: 4 });
+  // Already shielded, or streak too short to be worth saving.
+  assert.equal(rescuable(done, ALL_DAYS, TODAY, set('2026-10-15')), null);
+  assert.equal(rescuable(set('2026-10-14'), ALL_DAYS, TODAY), null);
+  // Nothing to rescue when yesterday was done.
+  assert.equal(rescuable(set('2026-10-13', '2026-10-14', '2026-10-15'), ALL_DAYS, TODAY), null);
+});
+
+test('rescuable respects schedules', () => {
+  // Weekdays: Mon 12, Tue 13, Wed 14 done, Thu 15 missed.
+  const done = set('2026-10-12', '2026-10-13', '2026-10-14');
+  assert.deepEqual(rescuable(done, WEEKDAYS, TODAY), { day: '2026-10-15', streak: 3 });
+  assert.equal(previousScheduled(WEEKDAYS, '2026-10-12'), '2026-10-09');
 });

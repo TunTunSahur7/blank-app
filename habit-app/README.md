@@ -1,73 +1,81 @@
 # Daymark — habit tracker
 
-A simple, private habit tracker for iPhone, built with Expo (React Native).
-It is built to fix the most common complaints in App Store reviews of other habit trackers:
+A beautiful, private habit tracker for iPhone, built with Expo (React Native).
+It fixes the most common complaints in competitors' App Store reviews, and makes money from Daymark Pro.
 
 | Complaint in competitor reviews | What Daymark does |
 |---|---|
 | "Only 3 habits free, then pay" | Unlimited habits, free |
-| Streaks and history lost after a restore or update | Data lives in an on-device SQLite database with versioned migrations, is included in iCloud/device backups, and can be exported to a file |
-| Can't fix a missed check-in | Tap any past day (week strip or history grid) to fix it |
-| Rest days break the streak | Per-habit schedules; unscheduled days never break a streak |
-| Accounts, tracking | No account, no analytics, nothing leaves the phone |
+| Streaks lost after one bad day | **Streak Shields** (Pro) repair a missed day |
+| Rest days break the streak | Per-habit schedules; days off never count as misses |
+| Streaks/history lost after restore | On-device SQLite + iCloud device backup + backup file export |
+| Surprise trial charges | Trial timeline on the paywall + reminder 2 days before billing |
+| Accounts, tracking | No account, no analytics; nothing leaves the phone |
+
+**Free:** unlimited habits, streaks, reminders, Streak Guard evening nudge, milestone celebrations, 5 weeks of history, backups.
+**Pro:** Streak Shields (3/month), Insights, full history. Yearly with a 7-day trial, monthly, or lifetime.
 
 ## Project layout
 
 ```
-src/app/             screens (Expo Router)
-  (tabs)/index.tsx   Today
-  (tabs)/settings.tsx  backup / restore / about
-  habit/new.tsx      create form (modal)
-  habit/[id].tsx     stats + history heatmap
-  habit/edit/[id].tsx edit / delete (modal)
-src/components/      HabitCard, Heatmap, HabitForm
-src/lib/             dates (streak logic), db (SQLite), store (state), reminders, backup
+src/app/                  screens (Expo Router)
+  onboarding/             welcome → pick habits → Streak Guard → paywall
+  (tabs)/                 Today · Progress · Settings (native iOS tab bar)
+  paywall.tsx             Daymark Pro
+  habit/[id].tsx          stats + history grid
+  habit/new.tsx, habit/edit/[id].tsx
+src/components/           ui kit (icons, rings, logo, lists), HabitRow, Heatmap, HabitForm, Celebration
+src/lib/
+  dates.ts                streaks, Streak Shields, rescue logic (unit-tested)
+  db.ts                   SQLite schema + queries
+  store.tsx               app state, milestones, review prompt
+  purchases.tsx           RevenueCat (stand-in store in development)
+  nudges.ts               Streak Guard notifications
+  reminders.ts, backup.ts, icons.ts, theme.ts, config.ts
+store/                    App Store listing, screenshots, launch plan
 ```
 
 ## Develop
 
 ```bash
 npm install
-npm test            # streak + backup unit tests
+npm test            # streak, shield and backup unit tests
 npm run typecheck
 npm run lint
-npx expo start      # open in Expo Go on your iPhone by scanning the QR code
 ```
+
+The app uses native modules (in-app purchases, SF Symbols, native tabs), so run it in a **development build**, not Expo Go:
+`npx eas-cli@latest build -p ios --profile preview`, then install it on your iPhone from the link.
+Without a RevenueCat key, development builds use a stand-in store so you can try the paywall without paying.
+
+## Set up subscriptions (once)
+
+1. **App Store Connect › Business:** accept the Paid Apps Agreement and add your bank and tax details. Purchases won't work until this is done.
+2. **App Store Connect › your app › Subscriptions:** create a group "Daymark Pro" with `daymark_pro_yearly` ($29.99, introductory offer: 1 week free) and `daymark_pro_monthly` ($4.99). Under **In-App Purchases**, add the non-consumable `daymark_pro_lifetime` ($69.99). (Details in `store/LISTING.md`.)
+3. **RevenueCat** (free until $2.5k/month in revenue; https://app.revenuecat.com):
+   - Create a project and add an App Store app with bundle ID `app.daymark.habits`, then upload an In-App Purchase key (.p8) from App Store Connect.
+   - Import the three products. Create an entitlement named **`pro`** and attach all three.
+   - Create an offering **`default`** (mark it current) with the packages **Annual**, **Monthly** and **Lifetime**.
+4. Copy the **public Apple SDK key** (starts with `appl_`) into EAS:
+   ```bash
+   npx eas-cli@latest env:create --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value appl_XXXX --environment production --environment preview --visibility plaintext
+   ```
+   **Without this key, production builds show "Purchases aren't available" and nobody can buy Pro.**
+5. Test with a Sandbox Apple ID (Settings › App Store › Sandbox Account) on a TestFlight build.
 
 ## Publish to the App Store (no Mac needed)
 
-You build and submit in Expo's cloud with EAS. You need:
-
-1. **Apple Developer Program** membership ($99/year) — https://developer.apple.com/programs/enroll/
-   (Approval can take 1–2 days.)
-2. A free **Expo account** — https://expo.dev/signup
-
-Then, from this `habit-app` folder on any computer with Node.js:
+You need an Apple Developer Program membership ($99/year) and a free Expo account.
 
 ```bash
 npm install
 npx eas-cli@latest login
-npx eas-cli@latest init                       # links the project to your Expo account
+npx eas-cli@latest init
 npx eas-cli@latest build -p ios --profile production
-```
-
-The build asks for your Apple ID and creates the certificates and provisioning profile for you.
-If the bundle identifier `app.daymark.habits` is already taken, change `ios.bundleIdentifier` in `app.json` to something unique such as `com.yourname.daymark`.
-
-When the build finishes:
-
-```bash
 npx eas-cli@latest submit -p ios --latest
 ```
 
-This creates the app in App Store Connect (if needed) and uploads the build. Then in
-[App Store Connect](https://appstoreconnect.apple.com):
+If `app.daymark.habits` is already taken, change `ios.bundleIdentifier` in `app.json` (and in RevenueCat).
+After the app exists in App Store Connect, put its numeric Apple ID in `APP_STORE_ID` in `src/lib/config.ts` so sharing and rating link to it.
 
-1. **TestFlight** — install the build on your iPhone and try it.
-2. **App Information** — paste the copy from `store/LISTING.md`; set category *Health & Fitness* (secondary *Productivity*).
-3. **App Privacy** — choose **"Data Not Collected"**. Add the privacy policy URL (see `PRIVACY.md`).
-4. **Screenshots** — take them on your iPhone from the TestFlight build (6.9" / 6.7" sizes are required).
-5. **Submit for Review.** Reviews usually take 1–3 days.
-
-To ship a new version later: bump `version` in `app.json`, then build and submit again
-(the build number increments automatically).
+Then in App Store Connect: paste the listing from `store/LISTING.md`, upload `store/screenshots/` (6.9" display), answer App Privacy as listed there, attach the in-app purchases to the version, and submit. Read `store/LAUNCH.md` before launch day.

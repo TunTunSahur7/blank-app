@@ -7,7 +7,8 @@ export default function NewHabitScreen() {
   const { create } = useHabits();
   return (
     <HabitForm
-      submitLabel="Add habit"
+      title="New Habit"
+      submitLabel="Add"
       onSubmit={async (input) => {
         await create(input);
         router.back();

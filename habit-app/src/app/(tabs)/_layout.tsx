@@ -1,38 +1,23 @@
-import { Tabs } from 'expo-router/tabs';
-import { SymbolView } from 'expo-symbols';
-import { Text } from 'react-native';
+import { NativeTabs } from 'expo-router/native-tabs';
 
 import { usePalette } from '../../lib/theme';
 
 export default function TabsLayout() {
   const p = usePalette();
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: p.accent,
-        tabBarInactiveTintColor: p.muted,
-        tabBarStyle: { backgroundColor: p.bg, borderTopColor: p.faint },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, size }) => (
-            <SymbolView name="checkmark.circle.fill" tintColor={color} size={size} fallback={<Text style={{ color }}>✓</Text>} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <SymbolView name="gearshape.fill" tintColor={color} size={size} fallback={<Text style={{ color }}>⚙︎</Text>} />
-          ),
-        }}
-      />
-    </Tabs>
+    <NativeTabs tintColor={p.accent}>
+      <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'checkmark.circle', selected: 'checkmark.circle.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="progress">
+        <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

@@ -1,155 +1,216 @@
-import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import * as Haptics from 'expo-haptics';
+import { Redirect, router } from 'expo-router';
 import { useMemo } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HabitCard } from '../../components/HabitCard';
-import { ALL_DAYS, fromKey, isScheduled, type DayKey } from '../../lib/dates';
-import type { HabitInput } from '../../lib/db';
+import { Celebration } from '../../components/Celebration';
+import { HabitRow } from '../../components/HabitRow';
+import { LogoMark, PrimaryButton, Ring, Section, Sym } from '../../components/ui';
+import { currentStreak, fromKey, isScheduled, rescuable, type DayKey } from '../../lib/dates';
+import type { Habit } from '../../lib/db';
+import { SHIELDS_PER_MONTH, usePro } from '../../lib/purchases';
 import { useHabits } from '../../lib/store';
-import { HABIT_COLORS, usePalette } from '../../lib/theme';
+import { FONT, usePalette } from '../../lib/theme';
 
-const STARTERS: HabitInput[] = [
-  { name: 'Drink water', emoji: '💧', color: HABIT_COLORS[3], days: ALL_DAYS, reminder: null },
-  { name: 'Read 10 pages', emoji: '📚', color: HABIT_COLORS[4], days: ALL_DAYS, reminder: null },
-  { name: 'Walk 20 minutes', emoji: '🚶', color: HABIT_COLORS[2], days: ALL_DAYS, reminder: null },
-  { name: 'Meditate', emoji: '🧘', color: HABIT_COLORS[5], days: ALL_DAYS, reminder: null },
-];
+const EMPTY: ReadonlySet<DayKey> = new Set();
 
 export default function TodayScreen() {
   const p = usePalette();
   const insets = useSafeAreaInsets();
-  const { ready, habits, done, today, toggle, create } = useHabits();
+  const { isPro } = usePro();
+  const {
+    ready, onboarded, habits, done, shields, today, toggle, celebration, dismissCelebration,
+    applyShield, shieldsUsedThisMonth, settings, setSetting,
+  } = useHabits();
 
-  const { due, notDue } = useMemo(() => {
-    const due = habits.filter((h) => isScheduled(h.days, today));
-    const notDue = habits.filter((h) => !isScheduled(h.days, today));
-    return { due, notDue };
-  }, [habits, today]);
+  const { due, notDue } = useMemo(
+    () => ({
+      due: habits.filter((h) => isScheduled(h.days, today)),
+      notDue: habits.filter((h) => !isScheduled(h.days, today)),
+    }),
+    [habits, today],
+  );
+
+  // Streaks that broke yesterday and can still be saved.
+  const rescues = useMemo(
+    () =>
+      habits
+        .map((h) => ({ habit: h, r: rescuable(done.get(h.id) ?? EMPTY, h.days, today, shields.get(h.id)) }))
+        .filter((x): x is { habit: Habit; r: { day: DayKey; streak: number } } => x.r !== null)
+        .filter((x) => settings[`rescue_dismissed:${x.habit.id}:${x.r.day}`] !== '1'),
+    [habits, done, shields, today, settings],
+  );
+
+  if (!ready) return <ActivityIndicator style={{ flex: 1, backgroundColor: p.bg }} />;
+  if (!onboarded) return <Redirect href="/onboarding" />;
 
   const doneCount = due.filter((h) => done.get(h.id)?.has(today)).length;
+  const open = due.filter((h) => !done.get(h.id)?.has(today));
+  const atStake = Math.max(0, ...open.map((h) => currentStreak(done.get(h.id) ?? EMPTY, h.days, today, shields.get(h.id))));
   const progress = due.length ? doneCount / due.length : 0;
+  const summary =
+    due.length === 0
+      ? 'A rest day. Nothing scheduled.'
+      : open.length === 0
+        ? 'Day closed. See you tomorrow.'
+        : atStake >= 2
+          ? `${open.length} left. Keep your ${atStake}-day streak alive.`
+          : `${open.length} left. You’ve got this.`;
 
-  const onToggle = (habitId: number, day: DayKey) =>
-    toggle(habitId, day).catch(() => Alert.alert("Couldn't save", 'Please try again.'));
+  const onToggle = (habitId: number) => {
+    const wasLast = open.length === 1 && open[0].id === habitId;
+    toggle(habitId, today)
+      .then(() => {
+        if (wasLast) setTimeout(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success), 250);
+      })
+      .catch(() => Alert.alert("Couldn't save", 'Please try again.'));
+  };
+
+  const rescue = async (habit: Habit, day: DayKey, streak: number) => {
+    if (!isPro) {
+      router.push({ pathname: '/paywall', params: { from: 'shield', habit: String(habit.id) } });
+      return;
+    }
+    if (shieldsUsedThisMonth() >= SHIELDS_PER_MONTH) {
+      Alert.alert('No shields left this month', `You get ${SHIELDS_PER_MONTH} Streak Shields each month. New ones arrive on the 1st.`);
+      return;
+    }
+    await applyShield(habit.id, day);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert('Streak saved', `Your ${streak}-day ${habit.name} streak is safe.`);
+  };
 
   const dateLabel = fromKey(today).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <ScrollView
-      style={{ backgroundColor: p.bg }}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
-    >
-      <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.date, { color: p.muted }]}>{dateLabel}</Text>
-          <Text style={[styles.title, { color: p.text }]}>Today</Text>
-        </View>
-        <Pressable
-          onPress={() => router.push('/habit/new')}
-          style={[styles.add, { backgroundColor: p.accent }]}
-          accessibilityRole="button"
-          accessibilityLabel="New habit"
-          hitSlop={6}
-        >
-          <SymbolView name="plus" size={20} weight="bold" tintColor="#fff" fallback={<Text style={styles.addText}>+</Text>} />
-        </Pressable>
-      </View>
-
-      {!ready ? (
-        <ActivityIndicator style={{ marginTop: 48 }} />
-      ) : habits.length === 0 ? (
-        <View style={[styles.empty, { backgroundColor: p.card }]}>
-          <Text style={{ fontSize: 44 }}>🌱</Text>
-          <Text style={[styles.emptyTitle, { color: p.text }]}>Start with one small habit</Text>
-          <Text style={[styles.emptyBody, { color: p.muted }]}>
-            Unlimited habits, free. Everything stays on your iPhone.
-          </Text>
-          <View style={styles.starters}>
-            {STARTERS.map((s) => (
-              <Pressable
-                key={s.name}
-                onPress={() => create(s)}
-                style={[styles.starter, { backgroundColor: p.faint }]}
-                accessibilityRole="button"
-                accessibilityLabel={`Add ${s.name}`}
-              >
-                <Text style={{ color: p.text, fontSize: 15 }}>
-                  {s.emoji} {s.name}
-                </Text>
-              </Pressable>
-            ))}
+    <View style={{ flex: 1, backgroundColor: p.bg }}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 100 }]}>
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={[FONT.footnote, styles.eyebrow, { color: p.muted }]}>{dateLabel}</Text>
+            <Text style={[FONT.largeTitle, { color: p.text }]}>Today</Text>
           </View>
-          <Pressable onPress={() => router.push('/habit/new')} accessibilityRole="button">
-            <Text style={{ color: p.accent, fontSize: 16, fontWeight: '600', marginTop: 4 }}>Create your own</Text>
+          <Pressable
+            onPress={() => router.push('/habit/new')}
+            style={({ pressed }) => [styles.add, { backgroundColor: `${p.accent}1F`, opacity: pressed ? 0.6 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="New habit"
+            hitSlop={6}
+          >
+            <Sym name="plus" size={17} color={p.accent} weight="bold" />
           </Pressable>
         </View>
-      ) : (
-        <>
-          {due.length > 0 && (
-            <View style={styles.progressWrap}>
-              <View style={[styles.track, { backgroundColor: p.faint }]}>
-                <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: p.accent }]} />
-              </View>
-              <Text style={[styles.progressText, { color: p.muted }]}>
-                {doneCount === due.length ? 'All done for today 🎉' : `${doneCount} of ${due.length} done`}
-              </Text>
+
+        {habits.length === 0 ? (
+          <View style={[styles.empty, { backgroundColor: p.card }]}>
+            <LogoMark size={72} />
+            <Text style={[FONT.title3, { color: p.text, textAlign: 'center' }]}>Start with one small habit</Text>
+            <Text style={[FONT.subhead, { color: p.muted, textAlign: 'center' }]}>Unlimited habits, free. Everything stays on your iPhone.</Text>
+            <View style={{ alignSelf: 'stretch', marginTop: 6 }}>
+              <PrimaryButton title="Add a Habit" onPress={() => router.push('/habit/new')} />
             </View>
-          )}
-
-          <View style={styles.list}>
-            {due.map((h) => (
-              <HabitCard
-                key={h.id}
-                habit={h}
-                done={done.get(h.id) ?? EMPTY}
-                today={today}
-                onToggle={(day) => onToggle(h.id, day)}
-              />
-            ))}
           </View>
+        ) : (
+          <>
+            {rescues.map(({ habit, r }) => (
+              <View key={habit.id} style={[styles.rescue, { backgroundColor: p.card }, p.shadow]}>
+                <View style={[styles.rescueIcon, { backgroundColor: `${habit.color}22` }]}>
+                  <Sym name="shield.fill" size={22} color={habit.color} />
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={[FONT.headline, { color: p.text }]}>Your {r.streak}-day streak broke</Text>
+                  <Text style={[FONT.footnote, { color: p.muted }]}>
+                    {habit.name} was missed yesterday. A Streak Shield can still save it.
+                  </Text>
+                  <View style={styles.rescueActions}>
+                    <Pressable
+                      onPress={() => rescue(habit, r.day, r.streak)}
+                      style={[styles.rescueBtn, { backgroundColor: habit.color }]}
+                      accessibilityRole="button"
+                    >
+                      <Text style={[FONT.subhead, { color: '#FFF', fontWeight: '600' }]}>Save Streak</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setSetting(`rescue_dismissed:${habit.id}:${r.day}`, '1')}
+                      style={styles.rescueSkip}
+                      accessibilityRole="button"
+                    >
+                      <Text style={[FONT.subhead, { color: p.muted }]}>Let It Go</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            ))}
 
-          {notDue.length > 0 && (
-            <>
-              <Text style={[styles.section, { color: p.muted }]}>NOT SCHEDULED TODAY</Text>
-              <View style={[styles.list, { opacity: 0.7 }]}>
-                {notDue.map((h) => (
-                  <HabitCard
+            <View style={[styles.summary, { backgroundColor: p.card }, p.shadow]}>
+              <View>
+                <Ring progress={progress} size={68} stroke={11} color={p.accent} track={`${p.accent}24`} />
+                {due.length > 0 && open.length === 0 && (
+                  <View style={styles.ringCheck}>
+                    <Sym name="checkmark" size={24} color={p.accent} weight="heavy" />
+                  </View>
+                )}
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text style={[FONT.title2, { color: p.text }]}>
+                  {due.length === 0 ? 'Rest day' : open.length === 0 ? 'All done' : `${doneCount} of ${due.length} done`}
+                </Text>
+                <Text style={[FONT.subhead, { color: p.muted }]}>{summary}</Text>
+              </View>
+            </View>
+
+            {due.length > 0 && (
+              <Section title="Habits">
+                {due.map((h, i) => (
+                  <HabitRow
                     key={h.id}
                     habit={h}
                     done={done.get(h.id) ?? EMPTY}
+                    shields={shields.get(h.id)}
                     today={today}
-                    onToggle={(day) => onToggle(h.id, day)}
+                    last={i === due.length - 1}
+                    onToggle={() => onToggle(h.id)}
                   />
                 ))}
-              </View>
-            </>
-          )}
-        </>
-      )}
-    </ScrollView>
+              </Section>
+            )}
+
+            {notDue.length > 0 && (
+              <Section title="Not today">
+                {notDue.map((h, i) => (
+                  <HabitRow
+                    key={h.id}
+                    habit={h}
+                    done={done.get(h.id) ?? EMPTY}
+                    shields={shields.get(h.id)}
+                    today={today}
+                    last={i === notDue.length - 1}
+                    dimmed
+                    onToggle={() => onToggle(h.id)}
+                  />
+                ))}
+              </Section>
+            )}
+          </>
+        )}
+      </ScrollView>
+      <Celebration data={celebration} onClose={dismissCelebration} />
+    </View>
   );
 }
 
-const EMPTY = new Set<DayKey>();
-
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 16, paddingBottom: 32, gap: 16 },
-  header: { flexDirection: 'row', alignItems: 'flex-end' },
-  date: { fontSize: 14, fontWeight: '500' },
-  title: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5 },
-  add: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  addText: { color: '#fff', fontSize: 24, fontWeight: '700', marginTop: -2 },
-  progressWrap: { gap: 6 },
-  track: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4 },
-  progressText: { fontSize: 13, fontWeight: '500' },
-  list: { gap: 12 },
-  section: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5, marginTop: 8, marginLeft: 4 },
-  empty: { borderRadius: 20, padding: 24, alignItems: 'center', gap: 10, marginTop: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
-  emptyBody: { fontSize: 15, textAlign: 'center', lineHeight: 21 },
-  starters: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 6 },
-  starter: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20 },
+  content: { paddingHorizontal: 16, gap: 20 },
+  header: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 4 },
+  eyebrow: { fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.2 },
+  add: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  summary: { borderRadius: 18, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 18 },
+  ringCheck: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  empty: { borderRadius: 20, padding: 28, alignItems: 'center', gap: 10, marginTop: 12 },
+  rescue: { borderRadius: 18, padding: 16, flexDirection: 'row', gap: 14 },
+  rescueIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  rescueActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  rescueBtn: { paddingHorizontal: 14, height: 36, borderRadius: 18, justifyContent: 'center' },
+  rescueSkip: { paddingHorizontal: 10, height: 36, justifyContent: 'center' },
 });

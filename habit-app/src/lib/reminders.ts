@@ -42,7 +42,7 @@ export async function syncReminders(habit: Habit): Promise<void> {
     if (!(habit.days & (1 << day))) continue;
     await Notifications.scheduleNotificationAsync({
       identifier: `${prefix(habit.id)}${day}`,
-      content: { title: `${habit.emoji} ${habit.name}`, body: "Time for today's check-in." },
+      content: { title: habit.name, body: "Time for today's check-in." },
       // expo-notifications weekdays are 1 = Sunday ... 7 = Saturday.
       trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: day + 1, hour, minute },
     });
@@ -50,6 +50,12 @@ export async function syncReminders(habit: Habit): Promise<void> {
 }
 
 export async function resyncAll(habits: Habit[]): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  // Only habit reminders: the trial reminder and Streak Guard nudges are managed elsewhere.
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((n) => n.identifier.startsWith('habit-'))
+      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+  );
   for (const h of habits) await syncReminders(h);
 }

@@ -25,6 +25,7 @@ export default function EditHabitScreen() {
 
   return (
     <HabitForm
+      title="Edit Habit"
       initial={habit}
       submitLabel="Save"
       onSubmit={async (input) => {

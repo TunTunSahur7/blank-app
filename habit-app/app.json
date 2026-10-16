@@ -12,12 +12,17 @@
       "bundleIdentifier": "app.daymark.habits",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
       }
     },
     "android": {
       "package": "app.daymark.habits",
       "adaptiveIcon": {
-        "backgroundColor": "#3D7BFF",
+        "backgroundColor": "#0071E3",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -31,10 +36,22 @@
       "expo-router",
       "expo-sqlite",
       "expo-sharing",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "description": "Unlimited habits, streaks that respect rest days, and a history you can’t lose."
   }
 }

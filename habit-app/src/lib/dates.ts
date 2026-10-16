@@ -3,6 +3,8 @@
 
 export type DayKey = string;
 
+const NONE: ReadonlySet<DayKey> = new Set();
+
 export const ALL_DAYS = 0b1111111;
 export const WEEKDAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 export const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -41,27 +43,39 @@ export function isValidKey(key: unknown): key is DayKey {
   return typeof key === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(key) && toKey(fromKey(key)) === key;
 }
 
+/** The most recent scheduled day strictly before `key`, or null if the habit has no schedule. */
+export function previousScheduled(days: number, key: DayKey): DayKey | null {
+  if (days === 0) return null;
+  let k = addDays(key, -1);
+  while (!isScheduled(days, k)) k = addDays(k, -1);
+  return k;
+}
+
 /**
- * Consecutive scheduled days completed, ending today. Today counts if done,
- * but an unfinished today doesn't break the streak — the day isn't over yet.
+ * Consecutive scheduled days kept, ending today. A day is kept when it was completed or
+ * protected by a Streak Shield. An unfinished today doesn't break the streak — the day
+ * isn't over yet.
  */
-export function currentStreak(done: Set<DayKey>, days: number, today: DayKey): number {
+export function currentStreak(done: ReadonlySet<DayKey>, days: number, today: DayKey, shields: ReadonlySet<DayKey> = NONE): number {
   if (days === 0 || done.size === 0) return 0;
-  let streak = 0;
-  let key = today;
-  if (isScheduled(days, key) && !done.has(key)) key = addDays(key, -1);
+  const start = isScheduled(days, today) && !done.has(today) && !shields.has(today) ? addDays(today, -1) : today;
+  return streakEndingAt(done, days, start, shields);
+}
+
+/** Consecutive scheduled days kept, counting back from `key` (inclusive). */
+export function streakEndingAt(done: ReadonlySet<DayKey>, days: number, key: DayKey, shields: ReadonlySet<DayKey> = NONE): number {
+  if (days === 0 || done.size === 0) return 0;
   const earliest = minKey(done);
-  while (key >= earliest) {
-    if (isScheduled(days, key)) {
-      if (!done.has(key)) break;
-      streak++;
-    }
-    key = addDays(key, -1);
+  let streak = 0;
+  for (let k = key; k >= earliest; k = addDays(k, -1)) {
+    if (!isScheduled(days, k)) continue;
+    if (done.has(k)) streak++;
+    else if (!shields.has(k)) break;
   }
   return streak;
 }
 
-export function bestStreak(done: Set<DayKey>, days: number, today: DayKey): number {
+export function bestStreak(done: ReadonlySet<DayKey>, days: number, today: DayKey, shields: ReadonlySet<DayKey> = NONE): number {
   if (days === 0 || done.size === 0) return 0;
   let best = 0;
   let run = 0;
@@ -70,15 +84,35 @@ export function bestStreak(done: Set<DayKey>, days: number, today: DayKey): numb
     if (done.has(key)) {
       run++;
       if (run > best) best = run;
-    } else if (key !== today) {
+    } else if (key !== today && !shields.has(key)) {
       run = 0;
     }
   }
   return best;
 }
 
+/**
+ * A streak that broke on the last scheduled day and can still be repaired with a shield:
+ * the missed day and the streak it would restore. Only offered for streaks worth saving.
+ */
+export function rescuable(
+  done: ReadonlySet<DayKey>,
+  days: number,
+  today: DayKey,
+  shields: ReadonlySet<DayKey> = NONE,
+  minimum = 3,
+): { day: DayKey; streak: number } | null {
+  const missed = previousScheduled(days, today);
+  if (!missed || done.has(missed) || shields.has(missed)) return null;
+  const before = previousScheduled(days, missed);
+  if (!before) return null;
+  const streak = streakEndingAt(done, days, before, shields);
+  if (streak < minimum) return null;
+  return { day: missed, streak: streak + (done.has(today) ? 1 : 0) };
+}
+
 /** Share of scheduled days in [from, to] that were completed, 0..1. */
-export function completionRate(done: Set<DayKey>, days: number, from: DayKey, to: DayKey): number {
+export function completionRate(done: ReadonlySet<DayKey>, days: number, from: DayKey, to: DayKey): number {
   let scheduled = 0;
   let hit = 0;
   for (let key = from; key <= to; key = addDays(key, 1)) {
@@ -96,7 +130,7 @@ export function describeDays(days: number): string {
   return WEEKDAY_SHORT.filter((_, i) => days & (1 << i)).join(', ');
 }
 
-function minKey(keys: Set<DayKey>): DayKey {
+function minKey(keys: ReadonlySet<DayKey>): DayKey {
   let min: DayKey | null = null;
   for (const k of keys) if (min === null || k < min) min = k;
   return min as DayKey;
