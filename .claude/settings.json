@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "minimalist-entrepreneur": {
+      "source": {
+        "source": "github",
+        "repo": "slavingia/skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "minimalist-entrepreneur@minimalist-entrepreneur": true
+  }
+}
